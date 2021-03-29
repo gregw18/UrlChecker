@@ -27,8 +27,9 @@ namespace GAWTest1
             //string msgText = "This is a test message.";
             //if (await CreateSnsTopic(myTopic))
             //    SendSnsMessage(myTopic, msgText);
-            CreateAndSend();
-            Console.WriteLine("Finished Run.");
+            Task<int> task = CreateAndSend();
+            Console.WriteLine($"Finished Run, result={task.Result}.");
+            //Console.ReadLine();
         }
 
         //public static void main()
@@ -37,7 +38,7 @@ namespace GAWTest1
         //    CreateAndSend();
         //}
 
-        private static async void CreateAndSend()
+        private static async Task<int> CreateAndSend()
         {
             Console.WriteLine("Starting CreateAndSend.");
             client = new AmazonSimpleNotificationServiceClient();
@@ -47,6 +48,8 @@ namespace GAWTest1
             if (await CreateSnsTopic(myTopic))
                 SendSnsMessage(myTopic, msgText);
             Console.WriteLine("Finished CreateAndSend.");
+            
+            return 0;
         }
 
         public async static Task<bool> CreateSnsTopic(string myTopic)
@@ -54,7 +57,7 @@ namespace GAWTest1
             Console.WriteLine("Starting CreateSnsTopic.");
             bool found = false;
             var resp = await client.ListTopicsAsync(cancelToken);
-            Console.WriteLine("CreateSnsTopic about to await.");
+            Console.WriteLine("CreateSnsTopic finished await.");
             foreach(Topic t in resp.Topics)
             {
                 Console.WriteLine("topic: {t.TopicArn}");
