@@ -18,7 +18,7 @@ namespace GAWTest1
 
 
         [FunctionName("TimerTriggerCSharp1")]
-        public static void Run([TimerTrigger("0 */2 * * * *")]TimerInfo myTimer, ILogger log)
+        public static void Run([TimerTrigger("0 0 5 * * *")]TimerInfo myTimer, ILogger log)
         {
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
             Console.WriteLine("In Run.");
