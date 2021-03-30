@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
@@ -23,10 +25,35 @@ namespace GAWTest1
         {
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
             Console.WriteLine("In Run.");
-            Task<int> task = CreateAndSend();
-            Console.WriteLine($"Finished Run, result={task.Result}.");
+            
+            string myUrl = @"https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection/prevention-risks/covid-19-vaccine-treatment/vaccine-rollout.html";
+            string lastDate = GetLastModifiedDate(myUrl);
+            Console.WriteLine($"lastModified={lastDate}.");
+            // Task<int> task = CreateAndSend();
+            //Console.WriteLine($"Finished Run, result={task.Result}.");
         }
 
+        public static string GetLastModifiedDate(string url)
+        {
+            WebRequest request = WebRequest.Create(url);
+            WebResponse response = request.GetResponse();
+            Stream data = response.GetResponseStream();
+            string htmlResponse = "";
+            using (StreamReader sr = new StreamReader(data))
+            {
+                htmlResponse = sr.ReadToEnd();
+            }
+            //Console.WriteLine($"response={htmlResponse}");
+
+            // Searching from end because target is at bottom of page.
+            string target = "dateModified";
+            int startLoc = htmlResponse.LastIndexOf(target);
+            string lastModified = htmlResponse.Substring(startLoc + target.Length + 2, 10);
+            Console.WriteLine($"dateModified={lastModified}");
+            
+            return lastModified;
+        }
+        
         private static async Task<int> CreateAndSend()
         {
             Console.WriteLine("Starting CreateAndSend.");
@@ -81,10 +108,15 @@ namespace GAWTest1
 
         public static async Task<bool> SendSnsMessage(string myTopic, string msgText)
         {
+            bool sentMsg = false;
             var pubResp = await client.PublishAsync(myTopicArn, msgText, cancelToken);
+            if (pubResp.HttpStatusCode == System.Net.HttpStatusCode.OK)
+            {
+                sentMsg = true;
+            }
             Console.WriteLine($"Response to publishing was {pubResp.HttpStatusCode.ToString()}.");
-            Console.WriteLine($"Didn't really send message: {msgText}");
-            return false;
+            
+            return sentMsg;
         }
     }
 }
