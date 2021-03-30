@@ -22,21 +22,9 @@ namespace GAWTest1
         {
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
             Console.WriteLine("In Run.");
-            //client = new AmazonSimpleNotificationServiceClient();
-            //string myTopic = "TestTopic";
-            //string msgText = "This is a test message.";
-            //if (await CreateSnsTopic(myTopic))
-            //    SendSnsMessage(myTopic, msgText);
             Task<int> task = CreateAndSend();
             Console.WriteLine($"Finished Run, result={task.Result}.");
-            //Console.ReadLine();
         }
-
-        //public static void main()
-        //{
-        //    Console.WriteLine("In main.");
-        //    CreateAndSend();
-        //}
 
         private static async Task<int> CreateAndSend()
         {
