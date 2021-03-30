@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
@@ -30,6 +31,9 @@ namespace GAWTest1
         {
             Console.WriteLine("Starting CreateAndSend.");
             client = new AmazonSimpleNotificationServiceClient();
+            var tokenSrc = new CancellationTokenSource();
+            cancelToken = tokenSrc.Token;
+
             string myTopic = "TestTopic";
             string msgText = "This is a test message.";
             Console.WriteLine("CreateAndSend about to await.");
@@ -45,10 +49,11 @@ namespace GAWTest1
             Console.WriteLine("Starting CreateSnsTopic.");
             bool found = false;
             var resp = await client.ListTopicsAsync(cancelToken);
-            Console.WriteLine("CreateSnsTopic finished await.");
+            
+            Console.WriteLine($"CreateSnsTopic finished await, response = {resp.HttpStatusCode}, have {resp.Topics.Count} topics.");
             foreach(Topic t in resp.Topics)
             {
-                Console.WriteLine("topic: {t.TopicArn}");
+                Console.WriteLine($"topic: {t.TopicArn}");
                 if (t.TopicArn == myTopic)
                 {
                     found = true;
@@ -61,7 +66,7 @@ namespace GAWTest1
 
         public static bool SendSnsMessage(string myTopic, string msgText)
         {
-            Console.WriteLine("Didn't really send message: {msgText}");
+            Console.WriteLine($"Didn't really send message: {msgText}");
             return false;
         }
     }
