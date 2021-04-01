@@ -56,22 +56,6 @@ namespace GAWTest1
             bool wroteOk = false;
             
             Console.WriteLine("Starting WriteValueToFile");
-            //string connectionString = ConfigurationManager.AppSettings["StorageConnectionString"];
-            //string connectionString = ConfigurationManager.AppSettings.Get("StorageConnectionString");
-            // string connectionString = "";
-            //Console.WriteLine($"connectionString={connectionString}");
-            //string storname = ConfigurationManager.AppSettings["StorageAccountName"];
-            //Console.WriteLine($"StorageAccountName={storname}");
-
-            //var appsettings = ConfigurationManager.AppSettings;
-            //Console.WriteLine($"appsettings.count={appsettings.Count}");
-            //foreach (var key in appsettings.AllKeys)
-            //{
-            //    Console.WriteLine($"key={key}, value={appsettings[key]}");
-            //}
-            //string connectionString2 = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
-            //Console.WriteLine($"connectionString2={connectionString2}");
-
 
             string connectionString = System.Environment.GetEnvironmentVariable("AzureWebJobsStorage");
             Console.WriteLine($"connectionString={connectionString}");
@@ -87,22 +71,27 @@ namespace GAWTest1
                 {
                     Console.WriteLine("Finished directory.ExistsAsync.");
                     ShareFileClient file = directory.GetFileClient(fileName);
-                    Azure.Response<bool> fileExists = await file.ExistsAsync();
+                    Console.WriteLine("Got file client.");
+                    //Azure.Response<bool> fileExists = await file.ExistsAsync();
                     //Console.WriteLine($"file {fileName} exists={fileExists.ToString()}.");
                     
-                    if (fileExists)
-                    {
+                    //if (fileExists)
+                    //{
                         // Convert the string to a byte array, so can write to file.
                         byte[] bytes = new UTF8Encoding(true).GetBytes(value);
+                        Console.WriteLine("Converted string to byte array.");
+                        var writeOptions = new ShareFileOpenWriteOptions();
+                        writeOptions.MaxSize = 200;
                         using Stream stream = await file.OpenWriteAsync(overwrite: true,
-                                                                        position: 0);
+                                                                        position: 0, 
+                                                                        options: writeOptions);
                         {
                             Console.WriteLine("Finished OpenWriteAsync.");
                             await stream.WriteAsync(bytes, 0, bytes.Length);
                             wroteOk = true;
                             Console.WriteLine("Finished WriteAsync.");
                         }
-                    }
+                    //}
 
                 }
 
