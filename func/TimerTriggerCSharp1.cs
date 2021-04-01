@@ -36,16 +36,71 @@ namespace GAWTest1
             string shareName = "vaccinepagechecker";
             string dirName = "webpage";
             string fileName = "lastmodified.txt";
-            Task<bool> task = WriteValueToFile(shareName, dirName, 
-                                                fileName, "Jan 29, 2021");
-            Console.WriteLine($"Finished Run, result={task.Result}.");
+            //Task<bool> task = WriteValueToFile(shareName, dirName, 
+            //                                    fileName, "Jan 29, 2021");
+            //Console.WriteLine($"Finished Run, result={task.Result}.");
 
+            Task<string> lastMod = ReadValueFromFile(shareName, dirName, 
+                                                fileName);
+            Console.WriteLine($"Finished read, contents = {lastMod}");
             //string myUrl = @"https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection/prevention-risks/covid-19-vaccine-treatment/vaccine-rollout.html";
             //string lastDate = GetLastModifiedDate(myUrl);
             //Console.WriteLine($"lastModified={lastDate}.");
 
             // Task<int> task = CreateAndSend();
             //Console.WriteLine($"Finished Run, result={task.Result}.");
+        }
+
+        public static async Task<string> ReadValueFromFile(string shareName, 
+                                                    string dirName, 
+                                                    string fileName)
+        {
+            string fileContents = "";
+            
+            Console.WriteLine("Starting ReadValueFromFile");
+
+            string connectionString = System.Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+            Console.WriteLine($"connectionString={connectionString}");
+
+            ShareClient share = new ShareClient(connectionString, shareName);
+            await share.CreateIfNotExistsAsync();
+            if (await share.ExistsAsync())
+            {
+                Console.WriteLine("Finished share.ExistsAsync.");
+                ShareDirectoryClient directory = share.GetDirectoryClient(dirName);
+                await directory.CreateIfNotExistsAsync();
+                if (await directory.ExistsAsync())
+                {
+                    Console.WriteLine("Finished directory.ExistsAsync.");
+                    ShareFileClient file = directory.GetFileClient(fileName);
+                    Console.WriteLine("Got file client.");
+                    Azure.Response<bool> fileExists = await file.ExistsAsync();
+                    //Console.WriteLine($"file {fileName} exists={fileExists.ToString()}.");
+                    
+                    if (fileExists)
+                    {
+                        // Convert the string to a byte array, so can write to file.
+                        using Stream stream = await file.OpenReadAsync();
+                        {
+                            Console.WriteLine("Finished OpenReadAsync.");
+                            byte[] result = new byte[stream.Length];
+                            await stream.ReadAsync(result);
+                            Console.WriteLine("Finished ReadAsync.");
+                            fileContents = System.Text.Encoding.UTF8.GetString(result);
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine( $"File {fileName} doesn't exist.");
+                        fileContents = "";
+                    }
+
+                }
+
+            }
+            Console.WriteLine($"Finished ReadValueFromFile, fileContents={fileContents}.");
+
+            return fileContents;
         }
 
         public static async Task<bool> WriteValueToFile(string shareName, 
