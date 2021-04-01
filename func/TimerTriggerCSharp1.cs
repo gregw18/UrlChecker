@@ -1,8 +1,15 @@
 using System;
+using System.Configuration;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Azure;
+using Azure.Storage;
+using Azure.Storage.Files.Shares;
+using Azure.Storage.Files.Shares.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
@@ -25,13 +32,86 @@ namespace GAWTest1
         {
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
             Console.WriteLine("In Run.");
-            
-            string myUrl = @"https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection/prevention-risks/covid-19-vaccine-treatment/vaccine-rollout.html";
-            string lastDate = GetLastModifiedDate(myUrl);
-            Console.WriteLine($"lastModified={lastDate}.");
+
+            string shareName = "vaccinepagechecker";
+            string dirName = "webpage";
+            string fileName = "lastmodified.txt";
+            Task<bool> task = WriteValueToFile(shareName, dirName, 
+                                                fileName, "Jan 29, 2021");
+            Console.WriteLine($"Finished Run, result={task.Result}.");
+
+            //string myUrl = @"https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection/prevention-risks/covid-19-vaccine-treatment/vaccine-rollout.html";
+            //string lastDate = GetLastModifiedDate(myUrl);
+            //Console.WriteLine($"lastModified={lastDate}.");
+
             // Task<int> task = CreateAndSend();
             //Console.WriteLine($"Finished Run, result={task.Result}.");
         }
+
+        public static async Task<bool> WriteValueToFile(string shareName, 
+                                                    string dirName, 
+                                                    string fileName,
+                                                    string value)
+        {
+            bool wroteOk = false;
+            
+            Console.WriteLine("Starting WriteValueToFile");
+            //string connectionString = ConfigurationManager.AppSettings["StorageConnectionString"];
+            //string connectionString = ConfigurationManager.AppSettings.Get("StorageConnectionString");
+            // string connectionString = "";
+            //Console.WriteLine($"connectionString={connectionString}");
+            //string storname = ConfigurationManager.AppSettings["StorageAccountName"];
+            //Console.WriteLine($"StorageAccountName={storname}");
+
+            //var appsettings = ConfigurationManager.AppSettings;
+            //Console.WriteLine($"appsettings.count={appsettings.Count}");
+            //foreach (var key in appsettings.AllKeys)
+            //{
+            //    Console.WriteLine($"key={key}, value={appsettings[key]}");
+            //}
+            //string connectionString2 = ConfigurationManager.AppSettings["AzureWebJobsStorage"];
+            //Console.WriteLine($"connectionString2={connectionString2}");
+
+
+            string connectionString = System.Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+            Console.WriteLine($"connectionString={connectionString}");
+
+            ShareClient share = new ShareClient(connectionString, shareName);
+            await share.CreateIfNotExistsAsync();
+            if (await share.ExistsAsync())
+            {
+                Console.WriteLine("Finished share.ExistsAsync.");
+                ShareDirectoryClient directory = share.GetDirectoryClient(dirName);
+                await directory.CreateIfNotExistsAsync();
+                if (await directory.ExistsAsync())
+                {
+                    Console.WriteLine("Finished directory.ExistsAsync.");
+                    ShareFileClient file = directory.GetFileClient(fileName);
+                    Azure.Response<bool> fileExists = await file.ExistsAsync();
+                    //Console.WriteLine($"file {fileName} exists={fileExists.ToString()}.");
+                    
+                    if (fileExists)
+                    {
+                        // Convert the string to a byte array, so can write to file.
+                        byte[] bytes = new UTF8Encoding(true).GetBytes(value);
+                        using Stream stream = await file.OpenWriteAsync(overwrite: true,
+                                                                        position: 0);
+                        {
+                            Console.WriteLine("Finished OpenWriteAsync.");
+                            await stream.WriteAsync(bytes, 0, bytes.Length);
+                            wroteOk = true;
+                            Console.WriteLine("Finished WriteAsync.");
+                        }
+                    }
+
+                }
+
+            }
+            Console.WriteLine("Finished WriteValueToFile.");
+
+            return wroteOk;
+        }
+
 
         public static string GetLastModifiedDate(string url)
         {
