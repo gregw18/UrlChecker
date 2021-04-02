@@ -136,19 +136,13 @@ namespace GAWUrlChecker
             {
                 ShareFileClient file = directory.GetFileClient(fileName);
                 Console.WriteLine("Got file client.");
-                Azure.Response<bool> fileExists = await file.ExistsAsync();
                 
-                if (fileExists)
+                // Note: DeleteIfExistsAsync only returns true if file existed.
+                Response<bool> result = await file.DeleteIfExistsAsync();
+                isDeleted = true;
+                if (result.Value)
                 {
-                    Response result = await file.DeleteAsync();
-                    if (result.Status == 200)
-                    {
-                        isDeleted = true;
-                    }
-                }
-                else
-                {
-                    Console.WriteLine( $"File {fileName} doesn't exist.");
+                    Console.WriteLine("File existed, and was deleted.");
                 }
                
             }
