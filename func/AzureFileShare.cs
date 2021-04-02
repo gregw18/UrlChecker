@@ -102,26 +102,58 @@ namespace GAWUrlChecker
             
             Console.WriteLine("Starting WriteToFile");
 
-            ShareFileClient file = directory.GetFileClient(fileName);
-            Console.WriteLine("Got file client.");
-            // Convert the string to a byte array, so can write to file.
-            byte[] bytes = new UTF8Encoding(true).GetBytes(value);
-            Console.WriteLine("Converted string to byte array.");
-            var writeOptions = new ShareFileOpenWriteOptions();
-            writeOptions.MaxSize = 200;
-            using Stream stream = await file.OpenWriteAsync(overwrite: true,
-                                                            position: 0, 
-                                                            options: writeOptions);
+            if (isInitialized)
             {
-                Console.WriteLine("Finished OpenWriteAsync.");
-                await stream.WriteAsync(bytes, 0, bytes.Length);
-                wroteOk = true;
-                Console.WriteLine("Finished WriteAsync.");
+                ShareFileClient file = directory.GetFileClient(fileName);
+                Console.WriteLine("Got file client.");
+                // Convert the string to a byte array, so can write to file.
+                byte[] bytes = new UTF8Encoding(true).GetBytes(value);
+                Console.WriteLine("Converted string to byte array.");
+                var writeOptions = new ShareFileOpenWriteOptions();
+                writeOptions.MaxSize = 200;
+                using Stream stream = await file.OpenWriteAsync(overwrite: true,
+                                                                position: 0, 
+                                                                options: writeOptions);
+                {
+                    Console.WriteLine("Finished OpenWriteAsync.");
+                    await stream.WriteAsync(bytes, 0, bytes.Length);
+                    wroteOk = true;
+                    Console.WriteLine("Finished WriteAsync.");
+                }
             }
 
             Console.WriteLine("Finished WriteToFile.");
 
             return wroteOk;
+        }
+
+        public async Task<bool> DeleteFile(string fileName)
+        {
+            bool isDeleted = false;
+
+            Console.WriteLine("Starting DeleteFile");
+            if (isInitialized)
+            {
+                ShareFileClient file = directory.GetFileClient(fileName);
+                Console.WriteLine("Got file client.");
+                Azure.Response<bool> fileExists = await file.ExistsAsync();
+                
+                if (fileExists)
+                {
+                    Response result = await file.DeleteAsync();
+                    if (result.Status == 200)
+                    {
+                        isDeleted = true;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine( $"File {fileName} doesn't exist.");
+                }
+               
+            }
+
+            return isDeleted;
         }
     }
 }
