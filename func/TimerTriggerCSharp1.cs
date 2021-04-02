@@ -1,15 +1,15 @@
 using System;
-using System.Configuration;
+//using System.Configuration;
 using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Azure;
-using Azure.Storage;
-using Azure.Storage.Files.Shares;
-using Azure.Storage.Files.Shares.Models;
+//using Azure;
+//using Azure.Storage;
+//using Azure.Storage.Files.Shares;
+//using Azure.Storage.Files.Shares.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
@@ -18,7 +18,8 @@ using Amazon;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 
-namespace GAWTest1
+
+namespace GAWUrlChecker
 {
     public static class TimerTriggerCSharp1
     {
@@ -36,11 +37,13 @@ namespace GAWTest1
             string shareName = "vaccinepagechecker";
             string dirName = "webpage";
             string fileName = "lastmodified.txt";
-            //Task<bool> task = WriteValueToFile(shareName, dirName, 
-            //                                    fileName, "Jan 29, 2021");
-            //Console.WriteLine($"Finished Run, result={task.Result}.");
 
-            Task<string> lastMod = ReadValueFromFile(shareName, dirName, 
+            var azureFiles = new AzureFileShare();
+            Task<bool> task = azureFiles.WriteValueToFile(shareName, dirName, 
+                                                fileName, "Jan 29, 2021");
+            Console.WriteLine($"Finished Run, result={task.Result}.");
+
+            Task<string> lastMod = azureFiles.ReadValueFromFile(shareName, dirName, 
                                                 fileName);
             Console.WriteLine($"Finished read, contents = {lastMod}");
             //string myUrl = @"https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection/prevention-risks/covid-19-vaccine-treatment/vaccine-rollout.html";
@@ -51,6 +54,7 @@ namespace GAWTest1
             //Console.WriteLine($"Finished Run, result={task.Result}.");
         }
 
+/*
         public static async Task<string> ReadValueFromFile(string shareName, 
                                                     string dirName, 
                                                     string fileName)
@@ -155,7 +159,7 @@ namespace GAWTest1
 
             return wroteOk;
         }
-
+*/
 
         public static string GetLastModifiedDate(string url)
         {
