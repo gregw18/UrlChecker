@@ -1,7 +1,10 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
+
 using Xunit;
 
-using GAWTest1;
+using GAWUrlChecker;
 
 namespace tests
 {
@@ -17,8 +20,8 @@ namespace tests
         [Fact]
         public void Test2()
         {
-            bool result = TimerTriggerCSharp1.SendSnsMessage("topic1", "test msg");
-            Assert.Equal(false, result);
+            Task<bool> result = TimerTriggerCSharp1.SendSnsMessage("topic1", "test msg");
+            Assert.Equal(false, result.Result);
         }
 
     }
