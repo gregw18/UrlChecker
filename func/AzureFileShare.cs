@@ -59,45 +59,48 @@ namespace GAWUrlChecker
             return isOk;
         }
 
-        public async Task<string> ReadValueFromFile(string fileName)
+        public async Task<string> ReadFile(string fileName)
         {
             string fileContents = "";
             
-            Console.WriteLine("Starting ReadValueFromFile");
-
-            ShareFileClient file = directory.GetFileClient(fileName);
-            Console.WriteLine("Got file client.");
-            Azure.Response<bool> fileExists = await file.ExistsAsync();
-            //Console.WriteLine($"file {fileName} exists={fileExists.ToString()}.");
-            
-            if (fileExists)
-            {
-                // Convert the string to a byte array, so can write to file.
-                using Stream stream = await file.OpenReadAsync();
+            if (isInitialized)
                 {
-                    Console.WriteLine("Finished OpenReadAsync.");
-                    byte[] result = new byte[stream.Length];
-                    await stream.ReadAsync(result);
-                    Console.WriteLine("Finished ReadAsync.");
-                    fileContents = System.Text.Encoding.UTF8.GetString(result);
+                Console.WriteLine("Starting ReadFile");
+
+                ShareFileClient file = directory.GetFileClient(fileName);
+                Console.WriteLine("Got file client.");
+                Azure.Response<bool> fileExists = await file.ExistsAsync();
+                //Console.WriteLine($"file {fileName} exists={fileExists.ToString()}.");
+                
+                if (fileExists)
+                {
+                    // Convert the string to a byte array, so can write to file.
+                    using Stream stream = await file.OpenReadAsync();
+                    {
+                        Console.WriteLine("Finished OpenReadAsync.");
+                        byte[] result = new byte[stream.Length];
+                        await stream.ReadAsync(result);
+                        Console.WriteLine("Finished ReadAsync.");
+                        fileContents = System.Text.Encoding.UTF8.GetString(result);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine( $"File {fileName} doesn't exist.");
+                    fileContents = "";
                 }
             }
-            else
-            {
-                Console.WriteLine( $"File {fileName} doesn't exist.");
-                fileContents = "";
-            }
-            Console.WriteLine($"Finished ReadValueFromFile, fileContents={fileContents}.");
+            Console.WriteLine($"Finished ReadFromFile, fileContents={fileContents}.");
 
             return fileContents;
         }
 
-        public async Task<bool> WriteValueToFile(string fileName, 
+        public async Task<bool> WriteToFile(string fileName, 
                                                     string value)
         {
             bool wroteOk = false;
             
-            Console.WriteLine("Starting WriteValueToFile");
+            Console.WriteLine("Starting WriteToFile");
 
             ShareFileClient file = directory.GetFileClient(fileName);
             Console.WriteLine("Got file client.");
@@ -116,7 +119,7 @@ namespace GAWUrlChecker
                 Console.WriteLine("Finished WriteAsync.");
             }
 
-            Console.WriteLine("Finished WriteValueToFile.");
+            Console.WriteLine("Finished WriteToFile.");
 
             return wroteOk;
         }

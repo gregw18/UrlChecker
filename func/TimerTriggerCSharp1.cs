@@ -39,10 +39,10 @@ namespace GAWUrlChecker
             string fileName = "lastmodified.txt";
 
             var azureFiles = new AzureFileShare(shareName, dirName);
-            Task<bool> task = azureFiles.WriteValueToFile(fileName, "Jan 29, 2021");
+            Task<bool> task = azureFiles.WriteToFile(fileName, "Jan 29, 2021");
             Console.WriteLine($"Finished write, result={task.Result}.");
 
-            Task<string> lastMod = azureFiles.ReadValueFromFile(fileName);
+            Task<string> lastMod = azureFiles.ReadFile(fileName);
             Console.WriteLine($"Finished read, contents = {lastMod.Result}");
             //string myUrl = @"https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection/prevention-risks/covid-19-vaccine-treatment/vaccine-rollout.html";
             //string lastDate = GetLastModifiedDate(myUrl);
