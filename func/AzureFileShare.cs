@@ -1,6 +1,10 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -23,11 +27,13 @@ namespace GAWUrlChecker
         private static ShareClient share;
         private static ShareDirectoryClient directory;
         private static bool isInitialized = false;
+        private static ILogger myLog;
 
-        public AzureFileShare(string shareName, string dirName)
+        public AzureFileShare(string shareName, string dirName, ILogger log)
         {
             if (! isInitialized)
             {
+                myLog = log;
                 Task<bool> result = Initialize(shareName, dirName);
                 if (result.Result)
                 {
@@ -41,18 +47,19 @@ namespace GAWUrlChecker
             bool isOk = false;
 
             string connectionString = System.Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-            Console.WriteLine($"connectionString={connectionString}");
+            myLog.LogInformation($"connectionString={connectionString}");
+            LogEnvStrings();
 
             share = new ShareClient(connectionString, shareName);
             await share.CreateIfNotExistsAsync();
             if (await share.ExistsAsync())
             {
-                Console.WriteLine("Finished share.ExistsAsync.");
+                myLog.LogInformation("Finished share.ExistsAsync.");
                 directory = share.GetDirectoryClient(dirName);
                 await directory.CreateIfNotExistsAsync();
                 if (await directory.ExistsAsync())
                 {
-                    Console.WriteLine("Finished directory.ExistsAsync.");
+                    myLog.LogInformation("Finished directory.ExistsAsync.");
                     isOk = true;
                 }
             }
@@ -65,32 +72,33 @@ namespace GAWUrlChecker
             
             if (isInitialized)
                 {
-                Console.WriteLine("Starting ReadFile");
+                myLog.LogInformation("Starting ReadFile");
+                ReadKeyVaultValues();
 
                 ShareFileClient file = directory.GetFileClient(fileName);
-                Console.WriteLine("Got file client.");
+                myLog.LogInformation("Got file client.");
                 Azure.Response<bool> fileExists = await file.ExistsAsync();
-                //Console.WriteLine($"file {fileName} exists={fileExists.ToString()}.");
+                //myLog.LogInformation($"file {fileName} exists={fileExists.ToString()}.");
                 
-                if (fileExists)
+                if (fileExists.Value)
                 {
                     // Convert the string to a byte array, so can write to file.
                     using Stream stream = await file.OpenReadAsync();
                     {
-                        Console.WriteLine("Finished OpenReadAsync.");
+                        myLog.LogInformation("Finished OpenReadAsync.");
                         byte[] result = new byte[stream.Length];
                         await stream.ReadAsync(result);
-                        Console.WriteLine("Finished ReadAsync.");
+                        myLog.LogInformation("Finished ReadAsync.");
                         fileContents = System.Text.Encoding.UTF8.GetString(result);
                     }
                 }
                 else
                 {
-                    Console.WriteLine( $"File {fileName} doesn't exist.");
+                    myLog.LogInformation( $"File {fileName} doesn't exist.");
                     fileContents = "";
                 }
             }
-            Console.WriteLine($"Finished ReadFromFile, fileContents={fileContents}.");
+            myLog.LogInformation($"Finished ReadFromFile, fileContents={fileContents}.");
 
             return fileContents;
         }
@@ -100,29 +108,29 @@ namespace GAWUrlChecker
         {
             bool wroteOk = false;
             
-            Console.WriteLine("Starting WriteToFile");
+            myLog.LogInformation("Starting WriteToFile");
 
             if (isInitialized)
             {
                 ShareFileClient file = directory.GetFileClient(fileName);
-                Console.WriteLine("Got file client.");
+                myLog.LogInformation("Got file client.");
                 // Convert the string to a byte array, so can write to file.
                 byte[] bytes = new UTF8Encoding(true).GetBytes(value);
-                Console.WriteLine("Converted string to byte array.");
+                myLog.LogInformation("Converted string to byte array.");
                 var writeOptions = new ShareFileOpenWriteOptions();
                 writeOptions.MaxSize = 200;
                 using Stream stream = await file.OpenWriteAsync(overwrite: true,
                                                                 position: 0, 
                                                                 options: writeOptions);
                 {
-                    Console.WriteLine("Finished OpenWriteAsync.");
+                    myLog.LogInformation("Finished OpenWriteAsync.");
                     await stream.WriteAsync(bytes, 0, bytes.Length);
                     wroteOk = true;
-                    Console.WriteLine("Finished WriteAsync.");
+                    myLog.LogInformation("Finished WriteAsync.");
                 }
             }
 
-            Console.WriteLine("Finished WriteToFile.");
+            myLog.LogInformation("Finished WriteToFile.");
 
             return wroteOk;
         }
@@ -131,23 +139,44 @@ namespace GAWUrlChecker
         {
             bool isDeleted = false;
 
-            Console.WriteLine("Starting DeleteFile");
+            myLog.LogInformation("Starting DeleteFile");
             if (isInitialized)
             {
                 ShareFileClient file = directory.GetFileClient(fileName);
-                Console.WriteLine("Got file client.");
+                myLog.LogInformation("Got file client.");
                 
                 // Note: DeleteIfExistsAsync only returns true if file existed.
-                Response<bool> result = await file.DeleteIfExistsAsync();
+                var result = await file.DeleteIfExistsAsync();
+                //Task<Response<bool>> result = await file.DeleteIfExistsAsync();
                 isDeleted = true;
-                if (result.Value)
+                if (result.Value == true)
                 {
-                    Console.WriteLine("File existed, and was deleted.");
+                    myLog.LogInformation("File existed, and was deleted.");
                 }
                
             }
 
             return isDeleted;
+        }
+
+        private void ReadKeyVaultValues()
+        {
+            myLog.LogInformation($"Starting ReadKeyVaultValues");
+            string vaultKey = "@Microsoft.KeyVault(VaultName='UrlCheckerKV';SecretName='secret1'";
+            string secretValue = System.Environment.GetEnvironmentVariable(vaultKey);
+            myLog.LogInformation($"secret value={secretValue}");
+           
+        }
+
+        private void LogEnvStrings()
+        {
+            var envStrings = System.Environment.GetEnvironmentVariables();
+            var sortedEnv = new SortedList(envStrings);
+            myLog.LogInformation("Environment variables");
+            foreach (string s in sortedEnv.Keys)
+                myLog.LogInformation( $"key: {s}, value:{envStrings[s]}");
+            myLog.LogInformation("--------");
+
         }
     }
 }

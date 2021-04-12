@@ -27,29 +27,32 @@ namespace GAWUrlChecker
         static AmazonSimpleNotificationServiceClient client;
         static System.Threading.CancellationToken cancelToken;
         static string myTopicArn;
+        static ILogger myLog;
 
         [FunctionName("TimerTriggerCSharp1")]
-        public static void Run([TimerTrigger("0 0 5 * * *")]TimerInfo myTimer, ILogger log)
+        public static void Run([TimerTrigger("0 0 5 * * *")]TimerInfo myTimer, 
+                                ILogger log)
         {
-            log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
-            Console.WriteLine("In Run.");
+            myLog = log;
+            myLog.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+            myLog.LogInformation("In Run.");
 
             string shareName = "vaccinepagechecker";
             string dirName = "webpage";
             string fileName = "lastmodified.txt";
 
-            var azureFiles = new AzureFileShare(shareName, dirName);
+            var azureFiles = new AzureFileShare(shareName, dirName, myLog);
             Task<bool> task = azureFiles.WriteToFile(fileName, "Jan 29, 2021");
-            Console.WriteLine($"Finished write, result={task.Result}.");
+            myLog.LogInformation($"Finished write, result={task.Result}.");
 
             Task<string> lastMod = azureFiles.ReadFile(fileName);
-            Console.WriteLine($"Finished read, contents = {lastMod.Result}");
+            myLog.LogInformation($"Finished read, contents = {lastMod.Result}");
             //string myUrl = @"https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection/prevention-risks/covid-19-vaccine-treatment/vaccine-rollout.html";
             //string lastDate = GetLastModifiedDate(myUrl);
-            //Console.WriteLine($"lastModified={lastDate}.");
+            //myLog.LogInformation($"lastModified={lastDate}.");
 
             // Task<int> task = CreateAndSend();
-            //Console.WriteLine($"Finished Run, result={task.Result}.");
+            //myLog.LogInformation($"Finished Run, result={task.Result}.");
         }
 
         public static string GetLastModifiedDate(string url)
@@ -62,46 +65,46 @@ namespace GAWUrlChecker
             {
                 htmlResponse = sr.ReadToEnd();
             }
-            //Console.WriteLine($"response={htmlResponse}");
+            //myLog.LogInformation($"response={htmlResponse}");
 
             // Searching from end because target is at bottom of page.
             string target = "dateModified";
             int startLoc = htmlResponse.LastIndexOf(target);
             string lastModified = htmlResponse.Substring(startLoc + target.Length + 2, 10);
-            Console.WriteLine($"dateModified={lastModified}");
+            myLog.LogInformation($"dateModified={lastModified}");
             
             return lastModified;
         }
         
         private static async Task<int> CreateAndSend()
         {
-            Console.WriteLine("Starting CreateAndSend.");
+            myLog.LogInformation("Starting CreateAndSend.");
             client = new AmazonSimpleNotificationServiceClient();
             var tokenSrc = new CancellationTokenSource();
             cancelToken = tokenSrc.Token;
 
             string myTopic = "TestTopic";
             string msgText = "This is a test message.";
-            Console.WriteLine("CreateAndSend about to await.");
+            myLog.LogInformation("CreateAndSend about to await.");
             if (await CreateSnsTopic(myTopic))
             {
                 bool sendResult = await SendSnsMessage(myTopic, msgText);
             }
-            Console.WriteLine("Finished CreateAndSend.");
+            myLog.LogInformation("Finished CreateAndSend.");
             
             return 0;
         }
 
         public async static Task<bool> CreateSnsTopic(string myTopic)
         {
-            Console.WriteLine("Starting CreateSnsTopic.");
+            myLog.LogInformation("Starting CreateSnsTopic.");
             bool found = false;
             var resp = await client.ListTopicsAsync(cancelToken);
             
-            Console.WriteLine($"CreateSnsTopic finished await, response = {resp.HttpStatusCode}, have {resp.Topics.Count} topics.");
+            myLog.LogInformation($"CreateSnsTopic finished await, response = {resp.HttpStatusCode}, have {resp.Topics.Count} topics.");
             foreach(Topic t in resp.Topics)
             {
-                Console.WriteLine($"topic: {t.TopicArn}");
+                myLog.LogInformation($"topic: {t.TopicArn}");
                 if (t.TopicArn.EndsWith(myTopic))
                 {
                     myTopicArn = t.TopicArn;
@@ -116,11 +119,11 @@ namespace GAWUrlChecker
                 if (createResp.HttpStatusCode.ToString() == "OK")
                 {
                     myTopicArn = createResp.TopicArn;
-                    Console.WriteLine($"Didn't find topic, so created new, arn={myTopicArn}.");
+                    myLog.LogInformation($"Didn't find topic, so created new, arn={myTopicArn}.");
                     found = true;
                 }
             }
-            Console.WriteLine( $"Finished CreateSnsTopic, found={found}.");
+            myLog.LogInformation( $"Finished CreateSnsTopic, found={found}.");
 
             return found;
         }
@@ -133,7 +136,7 @@ namespace GAWUrlChecker
             {
                 sentMsg = true;
             }
-            Console.WriteLine($"Response to publishing was {pubResp.HttpStatusCode.ToString()}.");
+            myLog.LogInformation($"Response to publishing was {pubResp.HttpStatusCode.ToString()}.");
             
             return sentMsg;
         }
