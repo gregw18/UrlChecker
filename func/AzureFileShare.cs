@@ -11,6 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Azure;
+using Azure.Core;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using Azure.Storage;
 using Azure.Storage.Files.Shares;
 using Azure.Storage.Files.Shares.Models;
@@ -162,10 +165,61 @@ namespace GAWUrlChecker
         private void ReadKeyVaultValues()
         {
             myLog.LogInformation($"Starting ReadKeyVaultValues");
-            string vaultKey = "@Microsoft.KeyVault(VaultName='UrlCheckerKV';SecretName='secret1'";
+            string vaultName = "urlcheckerkvus";
+            string secretName = "secret1";
+            string secretCfgName = "secretcfg";
+            string vaultUri = $"https://{vaultName}.vault.azure.net/";
+            myLog.LogInformation($"vaultUri={vaultUri}");
+
+            string vaultKey = $"@Microsoft.KeyVault(VaultName={vaultName};SecretName={secretName}";
             string secretValue = System.Environment.GetEnvironmentVariable(vaultKey);
-            myLog.LogInformation($"secret value={secretValue}");
-           
+            myLog.LogInformation($"att1, secret value={secretValue}");
+
+            vaultKey = $"@Microsoft.KeyVault(SecretUri={vaultUri}{secretName}/";
+            secretValue = System.Environment.GetEnvironmentVariable(vaultKey);
+            myLog.LogInformation($"att2, secret value={secretValue}");
+
+            secretValue = System.Environment.GetEnvironmentVariable(secretName);
+            myLog.LogInformation($"att3, secret value={secretValue}");
+
+            secretValue = System.Environment.GetEnvironmentVariable(secretCfgName);
+            myLog.LogInformation($"att4, secret value={secretValue}");
+
+
+            //var client = Azure.Security.KeyVault.Secrets.SecretClient
+            SecretClientOptions secOptions = new SecretClientOptions()
+            {
+                Retry = 
+                {
+                    Delay = TimeSpan.FromSeconds(2),
+                    MaxDelay = TimeSpan.FromSeconds(16),
+                    MaxRetries = 5,
+                    Mode = RetryMode.Exponential
+                }
+            };
+            try
+            {
+                var client = new SecretClient(new Uri(vaultUri), 
+                                            new DefaultAzureCredential(), secOptions);
+                var result = client.GetSecret(secretName);
+                secretValue = result.Value.Value;
+                myLog.LogInformation($"att5, secret value={secretValue}");
+            }
+            catch (AggregateException e)
+            {
+                string errString = $"Caught {e.InnerExceptions.Count} " + 
+                                $"exceptions: " + 
+                                $"{string.Join(", ", e.InnerExceptions.Select(x => x.Message))}";
+                myLog.LogError(errString);
+            }
+            catch (RequestFailedException e)
+            {
+                string errString = $"Caught code {e.ErrorCode} " + 
+                                $"status: {e.Status} " + 
+                                $"message: {e.Message}" +
+                                $"stack: {e.StackTrace}";
+                myLog.LogError(errString);
+            }
         }
 
         private void LogEnvStrings()
