@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 //using System.Configuration;
 using System.IO;
 using System.Net;
@@ -36,6 +38,9 @@ namespace GAWUrlChecker
             myLog = log;
             myLog.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
             myLog.LogInformation("In Run.");
+
+            LogEnvStrings();
+            ReadKeyVaultValues();
 
             string shareName = "vaccinepagechecker";
             string dirName = "webpage";
@@ -140,5 +145,48 @@ namespace GAWUrlChecker
             
             return sentMsg;
         }
+
+        private static void ReadKeyVaultValues()
+        {
+            myLog.LogInformation($"Starting ReadKeyVaultValues");
+            string vaultName = "urlcheckerkvus";
+            string secretName = "secret1";
+            string secretCfgName = "secretcfg";
+            string vaultUri = $"https://{vaultName}.vault.azure.net/";
+            ConfigRetriever cfgRetriever = new ConfigRetriever(vaultUri, myLog);
+            myLog.LogInformation($"vaultUri={vaultUri}");
+
+            string vaultKey = $"@Microsoft.KeyVault(VaultName={vaultName};SecretName={secretName}";
+            //string secretValue = System.Environment.GetEnvironmentVariable(vaultKey);
+            string secretValue = cfgRetriever.ReadValue(vaultKey);
+            myLog.LogInformation($"att1, secret value={secretValue}");
+
+            vaultKey = $"@Microsoft.KeyVault(SecretUri={vaultUri}{secretName}/";
+            //secretValue = System.Environment.GetEnvironmentVariable(vaultKey);
+            secretValue = cfgRetriever.ReadValue(vaultKey);
+            myLog.LogInformation($"att2, secret value={secretValue}");
+
+            //secretValue = System.Environment.GetEnvironmentVariable(secretName);
+            secretValue = cfgRetriever.ReadValue(vaultKey);
+            myLog.LogInformation($"att3, secret value={secretValue}");
+
+            secretValue = System.Environment.GetEnvironmentVariable(secretCfgName);
+            myLog.LogInformation($"att4, secret value={secretValue}");
+
+            secretValue = cfgRetriever.ReadSecret(secretName);
+            myLog.LogInformation($"att5, secret value={secretValue}");
+        }
+
+        private static void LogEnvStrings()
+        {
+            var envStrings = System.Environment.GetEnvironmentVariables();
+            var sortedEnv = new SortedList(envStrings);
+            myLog.LogInformation("Environment variables");
+            foreach (string s in sortedEnv.Keys)
+                myLog.LogInformation( $"key: {s}, value:{envStrings[s]}");
+            myLog.LogInformation("--------");
+
+        }
+
     }
 }
