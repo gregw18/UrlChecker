@@ -29,6 +29,7 @@ namespace GAWUrlChecker
         {
             string value = System.Environment.GetEnvironmentVariable(keyName) ?? "";
             myLog.LogInformation($"config {keyName}={value}");
+            Console.WriteLine($"config {keyName}={value}");
 
             return value;
         }
@@ -40,11 +41,12 @@ namespace GAWUrlChecker
         {
             string value = "";
 
-            if (vaultName != lastVaultName)
+            if (vaultName != lastVaultName || client is null)
             {
                 SetSecretClient(vaultName);
                 lastVaultName = vaultName;
             }
+
             try
             {
                 var result = client.GetSecret(keyName);
@@ -66,20 +68,27 @@ namespace GAWUrlChecker
         // Create a SecretClient to access the given vault.
         private void SetSecretClient(string vaultName)
         {
-            SecretClientOptions secOptions = new SecretClientOptions()
+            if (vaultName.Length > 0)
             {
-                Retry = 
+                SecretClientOptions secOptions = new SecretClientOptions()
                 {
-                    Delay = TimeSpan.FromSeconds(2),
-                    MaxDelay = TimeSpan.FromSeconds(16),
-                    MaxRetries = 5,
-                    Mode = RetryMode.Exponential
-                }
-            };
+                    Retry = 
+                    {
+                        Delay = TimeSpan.FromSeconds(2),
+                        MaxDelay = TimeSpan.FromSeconds(16),
+                        MaxRetries = 5,
+                        Mode = RetryMode.Exponential
+                    }
+                };
 
-            string vaultUri = $"https://{vaultName}.vault.azure.net/";
-            client = new SecretClient(new Uri(vaultUri), 
-                                        new DefaultAzureCredential(), secOptions);
+                string vaultUri = $"https://{vaultName}.vault.azure.net/";
+                client = new SecretClient(new Uri(vaultUri), 
+                                            new DefaultAzureCredential(), secOptions);
+            }
+            else
+            {
+                myLog.LogError("ConfigRetriever.SetSecretClient called with empty vaultName.");
+            }
         }
 
     }

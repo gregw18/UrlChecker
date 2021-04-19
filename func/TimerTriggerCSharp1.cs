@@ -178,15 +178,19 @@ namespace GAWUrlChecker
              myLog.LogInformation($"att5, secret value={secretValue}");
         }
 */
-        private static void LogEnvStrings()
+        public static void LogEnvStrings()
         {
             var envStrings = System.Environment.GetEnvironmentVariables();
             var sortedEnv = new SortedList(envStrings);
-            myLog.LogInformation("Environment variables");
+            //myLog.LogInformation("Environment variables");
+            Console.WriteLine("\nEnvironment variables");
             foreach (string s in sortedEnv.Keys)
-                myLog.LogInformation( $"key: {s}, value:{envStrings[s]}");
-            myLog.LogInformation("--------");
-
+            {
+                //myLog.LogInformation( $"key: {s}, value:{envStrings[s]}");
+                Console.WriteLine( $"key: {s}, value:{envStrings[s]}");
+            }
+            //myLog.LogInformation("--------");
+            Console.WriteLine("--------\n");
         }
 
     }

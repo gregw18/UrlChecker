@@ -66,14 +66,17 @@ namespace GAWUrlChecker
                         config.Add(kvp.Key, cfgRetriever.ReadValue(kvp.Key));
                     }
                 }
+                LogValues();
                 isInitialized = true;
             }
+            Console.WriteLine("Finished ConfigValues.Initialize.");
 
             return isInitialized;
         }
 
         public static string GetValue(string key)
         {
+            Console.WriteLine($"GetValue, about to look for key: {key}");
             string value = "";
             try
             {
@@ -89,7 +92,17 @@ namespace GAWUrlChecker
                          $"{key}, which doesn't exist.";
                 myLog.LogError(ex, errMsg);
             }
+            Console.WriteLine($"for key: {key}, found value: {value}");
+
             return value;
+        }
+
+        private static void LogValues()
+        {
+            foreach (var kvp in config)
+            {
+                Console.WriteLine($"ConfigValues.LogValues, key={kvp.Key}, value={kvp.Value}");
+            }
         }
 
     }
