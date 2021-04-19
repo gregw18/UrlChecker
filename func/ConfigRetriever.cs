@@ -17,23 +17,11 @@ namespace GAWUrlChecker
         private ILogger myLog;
 
         private SecretClient client;
+        private string lastVaultName = "ZZZ";
 
-        public ConfigRetriever(string vaultUri, ILogger log)
+        public ConfigRetriever(ILogger log)
         {
             myLog = log;
-            SecretClientOptions secOptions = new SecretClientOptions()
-            {
-                Retry = 
-                {
-                    Delay = TimeSpan.FromSeconds(2),
-                    MaxDelay = TimeSpan.FromSeconds(16),
-                    MaxRetries = 5,
-                    Mode = RetryMode.Exponential
-                }
-            };
-
-                client = new SecretClient(new Uri(vaultUri), 
-                                            new DefaultAzureCredential(), secOptions);
         }
 
         // Read environment variable of the given name.
@@ -46,10 +34,17 @@ namespace GAWUrlChecker
         }
 
         // Read given name in from secret in key vault.
-        public string ReadSecret(string keyName)
+        // If accessing a different vault, create a new SecretClient to 
+        // access that vault.
+        public string ReadSecret(string vaultName, string keyName)
         {
             string value = "";
 
+            if (vaultName != lastVaultName)
+            {
+                SetSecretClient(vaultName);
+                lastVaultName = vaultName;
+            }
             try
             {
                 var result = client.GetSecret(keyName);
@@ -67,6 +62,25 @@ namespace GAWUrlChecker
 
             return value;
         }
+
+        // Create a SecretClient to access the given vault.
+        private void SetSecretClient(string vaultName)
+        {
+            SecretClientOptions secOptions = new SecretClientOptions()
+            {
+                Retry = 
+                {
+                    Delay = TimeSpan.FromSeconds(2),
+                    MaxDelay = TimeSpan.FromSeconds(16),
+                    MaxRetries = 5,
+                    Mode = RetryMode.Exponential
+                }
+            };
+
+            string vaultUri = $"https://{vaultName}.vault.azure.net/";
+            client = new SecretClient(new Uri(vaultUri), 
+                                        new DefaultAzureCredential(), secOptions);
+        }
+
     }
 }
-

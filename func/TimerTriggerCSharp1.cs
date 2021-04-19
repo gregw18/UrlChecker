@@ -40,7 +40,7 @@ namespace GAWUrlChecker
             myLog.LogInformation("In Run.");
 
             LogEnvStrings();
-            ReadKeyVaultValues();
+            //ReadKeyVaultValues();
 
             string shareName = "vaccinepagechecker";
             string dirName = "webpage";
@@ -146,6 +146,7 @@ namespace GAWUrlChecker
             return sentMsg;
         }
 
+/*
         private static void ReadKeyVaultValues()
         {
             myLog.LogInformation($"Starting ReadKeyVaultValues");
@@ -174,9 +175,9 @@ namespace GAWUrlChecker
             myLog.LogInformation($"att4, secret value={secretValue}");
 
             secretValue = cfgRetriever.ReadSecret(secretName);
-            myLog.LogInformation($"att5, secret value={secretValue}");
+             myLog.LogInformation($"att5, secret value={secretValue}");
         }
-
+*/
         private static void LogEnvStrings()
         {
             var envStrings = System.Environment.GetEnvironmentVariables();
