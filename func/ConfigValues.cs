@@ -69,14 +69,14 @@ namespace GAWUrlChecker
                 LogValues();
                 isInitialized = true;
             }
-            Console.WriteLine("Finished ConfigValues.Initialize.");
+            LoggerFacade.LogInformation("Finished ConfigValues.Initialize.");
 
             return isInitialized;
         }
 
         public static string GetValue(string key)
         {
-            Console.WriteLine($"GetValue, about to look for key: {key}");
+            LoggerFacade.LogInformation($"GetValue, about to look for key: {key}");
             string value = "";
             try
             {
@@ -92,7 +92,7 @@ namespace GAWUrlChecker
                          $"{key}, which doesn't exist.";
                 myLog.LogError(ex, errMsg);
             }
-            Console.WriteLine($"for key: {key}, found value: {value}");
+            LoggerFacade.LogInformation($"for key: {key}, found value: {value}");
 
             return value;
         }
@@ -101,7 +101,7 @@ namespace GAWUrlChecker
         {
             foreach (var kvp in config)
             {
-                Console.WriteLine($"ConfigValues.LogValues, key={kvp.Key}, value={kvp.Value}");
+                LoggerFacade.LogInformation($"ConfigValues.LogValues, key={kvp.Key}, value={kvp.Value}");
             }
         }
 

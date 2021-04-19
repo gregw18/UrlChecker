@@ -27,18 +27,18 @@ namespace tests
 
         public ConfigValueTests(ConfigFixture fixture)
         {
-            Console.WriteLine("Starting COnfigValueTests ctor");
+            LoggerFacade.LogInformation("Starting ConfigValueTests ctor");
             this.fixture = fixture;
-            Console.WriteLine("Finished COnfigValueTests ctor");
+            LoggerFacade.LogInformation("Finished ConfigValueTests ctor");
         }
 
         [Fact]
         public void ReadGoodEnvGetExpected()
         {
             string key = "vaultName";
-            Console.WriteLine("About to call getvalue");
+            LoggerFacade.LogInformation("About to call getvalue");
             string value = ConfigValues.GetValue(key);
-            Console.WriteLine($"Called GetValue, value={value}");
+            LoggerFacade.LogInformation($"Called GetValue, value={value}");
             Assert.Equal("urlcheckerkvus", value);
         }
 
@@ -56,7 +56,9 @@ public class ConfigFixture
 {
     public ConfigFixture()
     {
-        Console.WriteLine("Starting ConfigFixture.");
+        LoggerFacade.UseConsole();
+
+        LoggerFacade.LogInformation("Starting ConfigFixture.");
         ReadSettingsIntoEnv();
         TimerTriggerCSharp1.LogEnvStrings();
         ConfigValues.Initialize(NullLogger.Instance);
@@ -68,12 +70,12 @@ public class ConfigFixture
     {
         //private Dictionary<string, string> Values;
 
-        Console.WriteLine("Starting ReadSettingsIntoEnv().");
+        LoggerFacade.LogInformation("Starting ReadSettingsIntoEnv().");
         string settingsFile = @"..\..\..\..\func\local.settings.json";
         var text = File.ReadAllText(settingsFile);
         //EnvironmentVariableTarget settings = JsonConvert.DeserializeObject<LocalSettings>(
         //    File.ReadAllText(settingsFile));
-        Console.WriteLine($"text={text}");
+        LoggerFacade.LogInformation($"text={text}");
 
         //var values = JsonSerializer.Deserialize<Dictionary<string, string>>(text);
         var values = JsonSerializer.Deserialize<LocalSettings>(text);
@@ -81,9 +83,9 @@ public class ConfigFixture
         //Console.WriteLine($"values.Count={values.Count}.");
         foreach (var setting in values.Values)
         {
-            Console.WriteLine($"key={setting.Key}, value={setting.Value}");
+            LoggerFacade.LogInformation($"key={setting.Key}, value={setting.Value}");
             Environment.SetEnvironmentVariable(setting.Key, setting.Value);
         }
-        Console.WriteLine("Finished ReadSettingsIntoEnv().\n");
+        LoggerFacade.LogInformation("Finished ReadSettingsIntoEnv().\n");
     }
 }

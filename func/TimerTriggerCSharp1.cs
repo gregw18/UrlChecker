@@ -35,6 +35,7 @@ namespace GAWUrlChecker
         public static void Run([TimerTrigger("0 0 5 * * *")]TimerInfo myTimer, 
                                 ILogger log)
         {
+            LoggerFacade.UseILogger(log);
             myLog = log;
             myLog.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
             myLog.LogInformation("In Run.");
@@ -183,14 +184,14 @@ namespace GAWUrlChecker
             var envStrings = System.Environment.GetEnvironmentVariables();
             var sortedEnv = new SortedList(envStrings);
             //myLog.LogInformation("Environment variables");
-            Console.WriteLine("\nEnvironment variables");
+            LoggerFacade.LogInformation("\nEnvironment variables");
             foreach (string s in sortedEnv.Keys)
             {
                 //myLog.LogInformation( $"key: {s}, value:{envStrings[s]}");
-                Console.WriteLine( $"key: {s}, value:{envStrings[s]}");
+                LoggerFacade.LogInformation( $"key: {s}, value:{envStrings[s]}");
             }
             //myLog.LogInformation("--------");
-            Console.WriteLine("--------\n");
+            LoggerFacade.LogInformation("--------\n");
         }
 
     }
