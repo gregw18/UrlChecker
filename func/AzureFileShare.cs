@@ -120,7 +120,7 @@ namespace GAWUrlChecker
                 {
                     LoggerFacade.LogInformation("Finished OpenWriteAsync.");
                     //var result = await stream.WriteAsync(bytes, 0, bytes.Length);
-                    stream.Write(bytes, 0, bytes.Length);
+                    await stream.WriteAsync(bytes, 0, bytes.Length);
                     wroteOk = true;
                     LoggerFacade.LogInformation("Finished WriteAsync.");
                 }
