@@ -42,6 +42,36 @@ namespace tests
             Assert.Equal("urlcheckerkvus", value);
         }
 
+        [Fact]
+        public void ReadBadEnvGetEmpty()
+        {
+            string key = "invalidKey";
+            LoggerFacade.LogInformation("About to call getvalue");
+            string value = ConfigValues.GetValue(key);
+            LoggerFacade.LogInformation($"Called GetValue, value={value}");
+            Assert.Equal("", value);
+        }
+
+        [Fact]
+        public void ReadGoodSecretGetExpected()
+        {
+            string key = "secret1";
+            LoggerFacade.LogInformation("About to call getvalue");
+            string value = ConfigValues.GetValue(key);
+            LoggerFacade.LogInformation($"Called GetValue, value={value}");
+            Assert.Equal("ACTUALSECRETVALUE", value);
+        }
+
+        [Fact]
+        public void ReadBadSecretGetEmpty()
+        {
+            string key = "NotASecret";
+            LoggerFacade.LogInformation("About to call getvalue");
+            string value = ConfigValues.GetValue(key);
+            LoggerFacade.LogInformation($"Called GetValue, value={value}");
+            Assert.Equal("", value);
+        }
+
     }
 }
 
@@ -61,7 +91,7 @@ public class ConfigFixture
         LoggerFacade.LogInformation("Starting ConfigFixture.");
         ReadSettingsIntoEnv();
         TimerTriggerCSharp1.LogEnvStrings();
-        ConfigValues.Initialize(NullLogger.Instance);
+        ConfigValues.Initialize();
     }
 
     // Read settings from local.settings.json into environment variables, to simulate

@@ -13,22 +13,14 @@ namespace GAWUrlChecker
     // any other methods.
     public class ConfigRetriever
     {
-
-        private ILogger myLog;
-
         private SecretClient client;
         private string lastVaultName = "ZZZ";
-
-        public ConfigRetriever(ILogger log)
-        {
-            myLog = log;
-        }
 
         // Read environment variable of the given name.
         public string ReadValue(string keyName)
         {
             string value = System.Environment.GetEnvironmentVariable(keyName) ?? "";
-            myLog.LogInformation($"config {keyName}={value}");
+            LoggerFacade.LogInformation($"config {keyName}={value}");
             Console.WriteLine($"config {keyName}={value}");
 
             return value;
@@ -51,7 +43,7 @@ namespace GAWUrlChecker
             {
                 var result = client.GetSecret(keyName);
                 value = result.Value.Value;
-                myLog.LogInformation($"secret {keyName}={value}");
+                LoggerFacade.LogInformation($"secret {keyName}={value}");
             }
             catch (RequestFailedException e)
             {
@@ -59,7 +51,7 @@ namespace GAWUrlChecker
                                 $"status: {e.Status} " + 
                                 $"message: {e.Message}" +
                                 $"stack: {e.StackTrace}";
-                myLog.LogError(errString);
+                LoggerFacade.LogError(errString);
             }
 
             return value;
@@ -87,7 +79,7 @@ namespace GAWUrlChecker
             }
             else
             {
-                myLog.LogError("ConfigRetriever.SetSecretClient called with empty vaultName.");
+                LoggerFacade.LogError("ConfigRetriever.SetSecretClient called with empty vaultName.");
             }
         }
 

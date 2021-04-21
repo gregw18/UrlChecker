@@ -13,17 +13,13 @@ namespace GAWUrlChecker
     // caller has to convert it.
     public static class ConfigValues
     {
-
-        private static ILogger myLog;
         private static bool isInitialized = false;
         private static Dictionary<string, string> config;
 
-        public static bool Initialize(ILogger log)
+        public static bool Initialize()
         {
             if (!isInitialized)
             {
-                myLog = log;
-
                 config = new Dictionary<string, string>();
 
                 // Seem to be stuck in a loop. Need key vault name to create the ConfigRetriever,
@@ -37,11 +33,11 @@ namespace GAWUrlChecker
                 //string vaultName = "urlcheckerkvus";
                 //string secretName = "secret1";
                 //string secretCfgName = "secretcfg";
-                ConfigRetriever cfgRetriever = new ConfigRetriever(myLog);
+                ConfigRetriever cfgRetriever = new ConfigRetriever();
                 string vaultName = "vaultName";
                 config.Add(vaultName, cfgRetriever.ReadValue(vaultName));
 
-                //myLog.LogInformation($"vaultUri={vaultUri}");
+                //LoggerFacade.LogInformation($"vaultUri={vaultUri}");
 
                 //string vaultKey = $"@Microsoft.KeyVault(VaultName={vaultName};SecretName={secretName}";
                 //string secretValue = System.Environment.GetEnvironmentVariable(vaultKey);
@@ -52,7 +48,10 @@ namespace GAWUrlChecker
                 // stored in the key vault, rather than an environment variable.)
                 Dictionary<string, bool> isSecret = new Dictionary<string, bool>();
                 isSecret.Add("secret1", true);
-                isSecret.Add("key1", false);
+                isSecret.Add("webSiteUrl", false);
+                isSecret.Add("shareName", false);
+                isSecret.Add("dirName", false);
+                isSecret.Add("lastChangedFileName", false);
 
                 // Read each item in and add name/value to the config dictionary.
                 foreach (KeyValuePair<string, bool> kvp in isSecret)
@@ -84,13 +83,13 @@ namespace GAWUrlChecker
             }
             catch (ArgumentNullException ex)
             {
-                myLog.LogError(ex, "ConfigValue.GetValue crashing because someone requested a null key");
+                LoggerFacade.LogError(ex, "ConfigValue.GetValue crashing because someone requested a null key");
             }
             catch (KeyNotFoundException ex)
             {
                 string errMsg = $"ConfigValue.GetValue crashing because someone requested key: " + 
                          $"{key}, which doesn't exist.";
-                myLog.LogError(ex, errMsg);
+                LoggerFacade.LogError(ex, errMsg);
             }
             LoggerFacade.LogInformation($"for key: {key}, found value: {value}");
 

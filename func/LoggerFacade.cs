@@ -4,12 +4,9 @@ using Microsoft.Extensions.Logging;
 
 namespace GAWUrlChecker
 {
-    // Read in and provide access to config values for function.
-    // Names of config values are hardcodes, as are whether they
-    // are secrets - i.e. whether they are found in the key vault or in
-    // environment variables.
-    // Data stored in a dictionary of strings - if value isn't a string,
-    // caller has to convert it.
+    // Facade for Logging. Can log to ILogger or console. Intended to be called directly
+    // from anywhere. Needs to be initialized before first call - defaults to console if not.
+    // Currently, all log levels are treated same - everything logged all the time.
     public static class LoggerFacade
     {
 
@@ -56,6 +53,23 @@ namespace GAWUrlChecker
             {
                 WriteToConsole(logMsg);
             }
+        }
+
+        public static void LogError(Exception ex, string logMsg)
+        {
+            string fullMsg = "Error: " + logMsg + "\n" + ex.ToString();
+            LogInformation(fullMsg);
+        }
+
+        public static void LogError(string logMsg)
+        {
+            string fullMsg = "Error: " + logMsg;
+            LogInformation(fullMsg);
+        }
+
+        public static void LogDebug(Exception ex, string logMsg)
+        {
+            LogInformation(logMsg);
         }
 
         private static void WriteToILogger(string logMsg)
