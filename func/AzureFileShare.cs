@@ -141,13 +141,22 @@ namespace GAWUrlChecker
                 ShareFileClient file = directory.GetFileClient(fileName);
                 LoggerFacade.LogInformation("Got file client.");
                 
-                // Note: DeleteIfExistsAsync only returns true if file existed.
-                var result = await file.DeleteIfExistsAsync();
-                //Task<Response<bool>> result = await file.DeleteIfExistsAsync();
-                isDeleted = true;
-                if (result.Value == true)
+                if (file.Exists())
                 {
-                    LoggerFacade.LogInformation("File existed, and was deleted.");
+                    // Note: DeleteIfExistsAsync only returns true if file existed.
+                    var result = await file.DeleteIfExistsAsync();
+                    //Task<Response<bool>> result = await file.DeleteIfExistsAsync();
+                    if (result.Value == true)
+                    {
+                        isDeleted = true;
+                        LoggerFacade.LogInformation("File existed, and was deleted.");
+                    }
+                }
+                else
+                {
+                    // Am pretending that file was deleted, if if never existed.
+                    LoggerFacade.LogInformation("File never existed.");
+                    isDeleted = true;
                 }
                
             }

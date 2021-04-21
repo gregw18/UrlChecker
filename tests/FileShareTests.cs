@@ -78,5 +78,26 @@ namespace tests
             Assert.True(result3);
         }
 
+        [Fact]
+        public async void ReadInvalidFile_ReturnsEmpty()
+        {
+            string fileName = "NotAFile.txt";
+            string actualContents = "zzz";
+            LoggerFacade.LogInformation("Starting ReadInvalid test.");
+
+            // Ensure that file doesn't exist.
+            var azureFiles = new AzureFileShare(shareName, dirName);
+            var result = await azureFiles.DeleteFile(fileName);
+            if (result)
+            {
+                LoggerFacade.LogInformation("ReadExisting test, finished delete.");
+
+                // Read, now that we know that it exists.
+                actualContents = await azureFiles.ReadFile(fileName);
+                LoggerFacade.LogInformation("ReadExisting test, finished read.");
+            }
+            Assert.True(actualContents.Length == 0);
+        }
+
     }
 }

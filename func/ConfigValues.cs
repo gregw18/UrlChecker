@@ -14,59 +14,63 @@ namespace GAWUrlChecker
     public static class ConfigValues
     {
         private static bool isInitialized = false;
+        private static readonly object _locker = new object();
         private static Dictionary<string, string> config;
 
         public static bool Initialize()
         {
-            if (!isInitialized)
+            lock (_locker)
             {
-                config = new Dictionary<string, string>();
-
-                // Seem to be stuck in a loop. Need key vault name to create the ConfigRetriever,
-                // but need the ConfigRetriever to retrieve the environment variable that
-                // contains the vault name.
-                // 1. Read vault name directly?
-                // 2. Modify ReadSecret to accept vault name, create client if doesn't already exist?
-
-                // Treating vaultName specially because it has to be available before
-                // can read a secret.
-                //string vaultName = "urlcheckerkvus";
-                //string secretName = "secret1";
-                //string secretCfgName = "secretcfg";
-                ConfigRetriever cfgRetriever = new ConfigRetriever();
-                string vaultName = "vaultName";
-                config.Add(vaultName, cfgRetriever.ReadValue(vaultName));
-
-                //LoggerFacade.LogInformation($"vaultUri={vaultUri}");
-
-                //string vaultKey = $"@Microsoft.KeyVault(VaultName={vaultName};SecretName={secretName}";
-                //string secretValue = System.Environment.GetEnvironmentVariable(vaultKey);
-                //string secretValue = cfgRetriever.ReadValue(vaultKey);
-
-
-                // Dictionary of config item names and whether each is a secret (i.e. is
-                // stored in the key vault, rather than an environment variable.)
-                Dictionary<string, bool> isSecret = new Dictionary<string, bool>();
-                isSecret.Add("secret1", true);
-                isSecret.Add("webSiteUrl", false);
-                isSecret.Add("shareName", false);
-                isSecret.Add("dirName", false);
-                isSecret.Add("lastChangedFileName", false);
-
-                // Read each item in and add name/value to the config dictionary.
-                foreach (KeyValuePair<string, bool> kvp in isSecret)
+                if (!isInitialized)
                 {
-                    if (kvp.Value)
+                    config = new Dictionary<string, string>();
+
+                    // Seem to be stuck in a loop. Need key vault name to create the ConfigRetriever,
+                    // but need the ConfigRetriever to retrieve the environment variable that
+                    // contains the vault name.
+                    // 1. Read vault name directly?
+                    // 2. Modify ReadSecret to accept vault name, create client if doesn't already exist?
+
+                    // Treating vaultName specially because it has to be available before
+                    // can read a secret.
+                    //string vaultName = "urlcheckerkvus";
+                    //string secretName = "secret1";
+                    //string secretCfgName = "secretcfg";
+                    ConfigRetriever cfgRetriever = new ConfigRetriever();
+                    string vaultName = "vaultName";
+                    config.Add(vaultName, cfgRetriever.ReadValue(vaultName));
+
+                    //LoggerFacade.LogInformation($"vaultUri={vaultUri}");
+
+                    //string vaultKey = $"@Microsoft.KeyVault(VaultName={vaultName};SecretName={secretName}";
+                    //string secretValue = System.Environment.GetEnvironmentVariable(vaultKey);
+                    //string secretValue = cfgRetriever.ReadValue(vaultKey);
+
+
+                    // Dictionary of config item names and whether each is a secret (i.e. is
+                    // stored in the key vault, rather than an environment variable.)
+                    Dictionary<string, bool> isSecret = new Dictionary<string, bool>();
+                    isSecret.Add("secret1", true);
+                    isSecret.Add("webSiteUrl", false);
+                    isSecret.Add("shareName", false);
+                    isSecret.Add("dirName", false);
+                    isSecret.Add("lastChangedFileName", false);
+
+                    // Read each item in and add name/value to the config dictionary.
+                    foreach (KeyValuePair<string, bool> kvp in isSecret)
                     {
-                        config.Add(kvp.Key, cfgRetriever.ReadSecret(config[vaultName], kvp.Key));
+                        if (kvp.Value)
+                        {
+                            config.Add(kvp.Key, cfgRetriever.ReadSecret(config[vaultName], kvp.Key));
+                        }
+                        else
+                        {
+                            config.Add(kvp.Key, cfgRetriever.ReadValue(kvp.Key));
+                        }
                     }
-                    else
-                    {
-                        config.Add(kvp.Key, cfgRetriever.ReadValue(kvp.Key));
-                    }
+                    isInitialized = true;
+                    LogValues();
                 }
-                LogValues();
-                isInitialized = true;
             }
             LoggerFacade.LogInformation("Finished ConfigValues.Initialize.");
 
