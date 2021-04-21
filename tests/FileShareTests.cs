@@ -27,6 +27,27 @@ namespace tests
             LoggerFacade.LogInformation("Finished FileShareTests ctor");
         }
 
+        [Fact]
+        public async void ReadExistingFile_Succeeds()
+        {
+            string fileName = "ReadExisting.txt";
+            string fileContents = "test data string";
+            string actualContents = "";
+            LoggerFacade.LogInformation("Starting ReadExisting test.");
+
+            // Write data to the file.
+            var azureFiles = new AzureFileShare(shareName, dirName);
+            var result1 = await azureFiles.WriteToFile(fileName, fileContents);
+            if (result1)
+            {
+                LoggerFacade.LogInformation("ReadExisting test, finished first write.");
+
+                // Read, now that we know that it exists.
+                actualContents = await azureFiles.ReadFile(fileName);
+                LoggerFacade.LogInformation("ReadExisting test, finished read.");
+            }
+            Assert.Equal(fileContents, actualContents);
+        }
 
         [Fact]
         public async void WriteToExistingFile_Succeeds()

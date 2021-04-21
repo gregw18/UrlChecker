@@ -80,11 +80,11 @@ namespace GAWUrlChecker
                     // Convert the string to a byte array, so can write to file.
                     using Stream stream = await file.OpenReadAsync();
                     {
-                        LoggerFacade.LogInformation("Finished OpenReadAsync.");
+                        LoggerFacade.LogInformation($"Finished OpenReadAsync, stream.Length = {stream.Length}.");
                         byte[] result = new byte[stream.Length];
                         await stream.ReadAsync(result);
-                        LoggerFacade.LogInformation("Finished ReadAsync.");
-                        fileContents = System.Text.Encoding.UTF8.GetString(result);
+                        LoggerFacade.LogInformation($"Finished ReadAsync, result.Length-{result.Length}.");
+                        fileContents = System.Text.Encoding.UTF8.GetString(result, 0, result.Length);
                     }
                 }
                 else
@@ -113,7 +113,7 @@ namespace GAWUrlChecker
                 byte[] bytes = new UTF8Encoding(true).GetBytes(value);
                 LoggerFacade.LogInformation("Converted string to byte array.");
                 var writeOptions = new ShareFileOpenWriteOptions();
-                writeOptions.MaxSize = 200;
+                writeOptions.MaxSize = bytes.Length;
                 using Stream stream = await file.OpenWriteAsync(overwrite: true,
                                                                 position: 0, 
                                                                 options: writeOptions);
@@ -122,7 +122,7 @@ namespace GAWUrlChecker
                     //var result = await stream.WriteAsync(bytes, 0, bytes.Length);
                     await stream.WriteAsync(bytes, 0, bytes.Length);
                     wroteOk = true;
-                    LoggerFacade.LogInformation("Finished WriteAsync.");
+                    LoggerFacade.LogInformation($"Finished WriteAsync, length={bytes.Length}.");
                 }
             }
 
