@@ -1,19 +1,9 @@
-using System;
-// using System.Configuration;
 using System.IO;
-using System.Linq;
-// using System.Linq.Expressions;
-// using System.Net;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
-using Azure;
-using Azure.Core;
-using Azure.Storage;
 using Azure.Storage.Files.Shares;
 using Azure.Storage.Files.Shares.Models;
-using Microsoft.Extensions.Logging;
 
 
 namespace GAWUrlChecker
@@ -119,7 +109,6 @@ namespace GAWUrlChecker
                                                                 options: writeOptions);
                 {
                     LoggerFacade.LogInformation("Finished OpenWriteAsync.");
-                    //var result = await stream.WriteAsync(bytes, 0, bytes.Length);
                     await stream.WriteAsync(bytes, 0, bytes.Length);
                     wroteOk = true;
                     LoggerFacade.LogInformation($"Finished WriteAsync, length={bytes.Length}.");
@@ -145,7 +134,6 @@ namespace GAWUrlChecker
                 {
                     // Note: DeleteIfExistsAsync only returns true if file existed.
                     var result = await file.DeleteIfExistsAsync();
-                    //Task<Response<bool>> result = await file.DeleteIfExistsAsync();
                     if (result.Value == true)
                     {
                         isDeleted = true;

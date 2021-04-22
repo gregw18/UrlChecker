@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-using Microsoft.Extensions.Logging;
-
 namespace GAWUrlChecker
 {
     // Read in and provide access to config values for function.
@@ -33,19 +31,9 @@ namespace GAWUrlChecker
 
                     // Treating vaultName specially because it has to be available before
                     // can read a secret.
-                    //string vaultName = "urlcheckerkvus";
-                    //string secretName = "secret1";
-                    //string secretCfgName = "secretcfg";
                     ConfigRetriever cfgRetriever = new ConfigRetriever();
                     string vaultName = "vaultName";
                     config.Add(vaultName, cfgRetriever.ReadValue(vaultName));
-
-                    //LoggerFacade.LogInformation($"vaultUri={vaultUri}");
-
-                    //string vaultKey = $"@Microsoft.KeyVault(VaultName={vaultName};SecretName={secretName}";
-                    //string secretValue = System.Environment.GetEnvironmentVariable(vaultKey);
-                    //string secretValue = cfgRetriever.ReadValue(vaultKey);
-
 
                     // Dictionary of config item names and whether each is a secret (i.e. is
                     // stored in the key vault, rather than an environment variable.)
