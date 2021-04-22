@@ -8,8 +8,16 @@ using GAWUrlChecker;
 
 namespace tests
 {
-    public class UnitTest1
+    public class UnitTest1 : IClassFixture<ConfigFixture>
     {
+
+        ConfigFixture fixture;
+
+        public UnitTest1(ConfigFixture fixture)
+        {
+            this.fixture = fixture;
+        }
+
         [Fact]
         public void Test1()
         {
@@ -18,10 +26,14 @@ namespace tests
         }
 
         [Fact]
-        public void Test2()
+        public async void Test2()
         {
-            Task<bool> result = TimerTriggerCSharp1.SendSnsMessage("topic1", "test msg");
-            Assert.Equal(false, result.Result);
+            Notification sns = new Notification();
+            string topic = ConfigValues.GetValue("snsTopic");
+            LoggerFacade.LogInformation($"topic={topic}");
+            string testMsg = "test msg";
+            bool result = await sns.SendSnsMessage(topic, testMsg);
+            Assert.True(result);
         }
 
     }

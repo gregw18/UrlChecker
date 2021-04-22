@@ -55,6 +55,7 @@ namespace GAWUrlChecker
                     isSecret.Add("shareName", false);
                     isSecret.Add("dirName", false);
                     isSecret.Add("lastChangedFileName", false);
+                    isSecret.Add("snsTopic", false);
 
                     // Read each item in and add name/value to the config dictionary.
                     foreach (KeyValuePair<string, bool> kvp in isSecret)

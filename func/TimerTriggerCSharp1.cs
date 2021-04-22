@@ -16,9 +16,9 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 
-using Amazon;
-using Amazon.SimpleNotificationService;
-using Amazon.SimpleNotificationService.Model;
+//using Amazon;
+//using Amazon.SimpleNotificationService;
+//using Amazon.SimpleNotificationService.Model;
 
 
 namespace GAWUrlChecker
@@ -26,7 +26,7 @@ namespace GAWUrlChecker
     public static class TimerTriggerCSharp1
     {
 
-        static AmazonSimpleNotificationServiceClient client;
+        // static AmazonSimpleNotificationServiceClient client;
         static System.Threading.CancellationToken cancelToken;
         static string myTopicArn;
 
@@ -84,6 +84,7 @@ namespace GAWUrlChecker
             return lastModified;
         }
         
+/*
         private static async Task<int> CreateAndSend()
         {
             LoggerFacade.LogInformation("Starting CreateAndSend.");
@@ -148,6 +149,7 @@ namespace GAWUrlChecker
             
             return sentMsg;
         }
+*/
 
 /*
         private static void ReadKeyVaultValues()
