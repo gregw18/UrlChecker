@@ -19,14 +19,7 @@ namespace tests
         }
 
         [Fact]
-        public void Test1()
-        {
-            int result = 4;
-            Assert.Equal(4, result);
-        }
-
-        [Fact]
-        public async void Test2()
+        public async void SendMsg_Succeeds()
         {
             Notification sns = new Notification();
             string topic = ConfigValues.GetValue("snsTopic");
