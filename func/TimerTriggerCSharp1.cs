@@ -22,21 +22,22 @@ namespace GAWUrlChecker
                 LoggerFacade.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
                 LoggerFacade.LogInformation("In Run.");
 
-                LogEnvStrings();
+                //LogEnvStrings();
                 ConfigValues.Initialize();
+                CheckIfPageChanged();
 
-                string shareName = ConfigValues.GetValue("shareName");
-                string dirName = ConfigValues.GetValue("dirName");
-                string fileName = ConfigValues.GetValue("lastChangedFileName");
+                //string shareName = ConfigValues.GetValue("shareName");
+                //string dirName = ConfigValues.GetValue("dirName");
+                //string fileName = ConfigValues.GetValue("lastChangedFileName");
 
-                var azureFiles = new AzureFileShare(shareName, dirName);
-                Task<bool> task = azureFiles.WriteToFile(fileName, "Jan 29, 2021");
-                LoggerFacade.LogInformation($"Finished write, result={task.Result}.");
+                //var azureFiles = new AzureFileShare(shareName, dirName);
+                //Task<bool> task = azureFiles.WriteToFile(fileName, "Jan 29, 2021");
+                //LoggerFacade.LogInformation($"Finished write, result={task.Result}.");
 
-                Task<string> lastMod = azureFiles.ReadFile(fileName);
-                LoggerFacade.LogInformation($"Finished read, contents = {lastMod.Result}");
+                //Task<string> lastMod = azureFiles.ReadFile(fileName);
+                //LoggerFacade.LogInformation($"Finished read, contents = {lastMod.Result}");
 
-                SendMsg_Succeeds();
+                //SendMsg_Succeeds();
                             
                 //string myUrl = @"https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection/prevention-risks/covid-19-vaccine-treatment/vaccine-rollout.html";
                 //string lastDate = GetLastModifiedDate(myUrl);
@@ -49,8 +50,49 @@ namespace GAWUrlChecker
 
         }
 
-        public static string GetLastModifiedDate(string url)
+        public static async void CheckIfPageChanged()
         {
+            try
+            {
+                LoggerFacade.LogInformation("Starting CheckIfPageChanged.");
+
+                //LogEnvStrings();
+                ConfigValues.Initialize();
+
+                // Read in html for given page.
+                string url = ConfigValues.GetValue("webSiteUrl");
+                string pageText = GetPageText(url);
+                // Parse out last changed date.
+                string lastChangedDate = GetChangedDate(pageText);
+                
+                // Compare to date from last time checked page.
+                // If different:
+                //      Save new date to check against last time.
+                //      Send message that page changed.
+                PageChangeTracker chgTracker = new PageChangeTracker();
+                bool dateChanged = false;
+                if (chgTracker.HasDateChanged(lastChangedDate))
+                {
+                    chgTracker.SaveChangeDate(lastChangedDate);
+                    var result = await SendMessage(lastChangedDate, url);
+                    if (result)
+                    {
+                        dateChanged = true;
+                    }
+                }
+                LoggerFacade.LogInformation($"Finished CheckIfPageChanged, dateChanged={dateChanged}.");
+            }
+            catch (Exception ex)
+            {
+                LoggerFacade.LogError(ex, "Exception in TimerTriggerCSharp1.CheckIfPageChanged.");
+            }
+
+        }
+
+        // Return html from requested page.
+        public static string GetPageText(string url)
+        {
+            LoggerFacade.LogInformation("Starting GetPageText.");
             WebRequest request = WebRequest.Create(url);
             WebResponse response = request.GetResponse();
             Stream data = response.GetResponseStream();
@@ -60,12 +102,19 @@ namespace GAWUrlChecker
                 htmlResponse = sr.ReadToEnd();
             }
             //LoggerFacade.LogInformation($"response={htmlResponse}");
+            LoggerFacade.LogInformation("Finished GetPageText.");
 
+            return htmlResponse;
+        }
+
+        // Parse out the last changed date from the given text.
+        public static string GetChangedDate(string htmlResponse)
+        {
             // Searching from end because target is at bottom of page.
             string target = "dateModified";
             int startLoc = htmlResponse.LastIndexOf(target);
             string lastModified = htmlResponse.Substring(startLoc + target.Length + 2, 10);
-            LoggerFacade.LogInformation($"dateModified={lastModified}");
+            LoggerFacade.LogInformation($"GetChangedDate, dateModified={lastModified}");
             
             return lastModified;
         }
@@ -82,20 +131,24 @@ namespace GAWUrlChecker
             LoggerFacade.LogInformation("--------\n");
         }
 
-        private static async void SendMsg_Succeeds()
+        private static async Task<bool> SendMessage(string changeDate, string url)
         {
+            bool sentOk = false;
             try
             {
                 Notification sns = new Notification();
                 string topic = ConfigValues.GetValue("snsTopic");
                 LoggerFacade.LogInformation($"topic={topic}");
-                string testMsg = "test msg";
-                bool result = await sns.SendSnsMessage(topic, testMsg);
+                string msg = $"The web page {url} changed, " + 
+                                $"new last date changed is {changeDate}";
+                sentOk = await sns.SendSnsMessage(topic, msg);
             }
             catch (Exception ex)
             {
                 LoggerFacade.LogError(ex, "Exception in SendMsg_Succeeds");
             }
+
+            return sentOk;
         }
 
     }
