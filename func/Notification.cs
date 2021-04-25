@@ -1,6 +1,8 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Amazon;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 
@@ -16,9 +18,24 @@ namespace GAWUrlChecker
 
         public Notification()
         {
-            client = new AmazonSimpleNotificationServiceClient();
-            var tokenSrc = new CancellationTokenSource();
-            cancelToken = tokenSrc.Token;
+            try
+            {
+                string awsAccessKeyId = ConfigValues.GetValue("awsAccessKeyId");
+                string awsSecretAccessKey = ConfigValues.GetValue("awsSecretAccessKey");
+                string awsRegionName = ConfigValues.GetValue("awsRegionName");
+                RegionEndpoint awsRegion = RegionEndpoint.GetBySystemName( awsRegionName);
+                client = new AmazonSimpleNotificationServiceClient(awsAccessKeyId,
+                                                                    awsSecretAccessKey,
+                                                                    awsRegion);
+                LoggerFacade.LogInformation("Notification ctor, finished sns client ctor.");
+                var tokenSrc = new CancellationTokenSource();
+                cancelToken = tokenSrc.Token;
+            }
+            catch (Exception ex)
+            {
+                LoggerFacade.LogError(ex, "Exception in Notification ctor.");
+            }
+            LoggerFacade.LogInformation("Finished Notification ctor.");
 
         }
 
@@ -27,12 +44,15 @@ namespace GAWUrlChecker
         {
             bool sentMsg = false;
          
+            LoggerFacade.LogInformation("Starting SendSnsMessage.");
             string topicArn = await GetTopicArn(topic);
             if (topicArn.Length == 0)
             {
+                LoggerFacade.LogInformation($"SendSnsMessage, creating topic {topic}.");
                 topicArn = await CreateTopic(topic);
             }
 
+            LoggerFacade.LogInformation("SendSnsMessage, calling PublishAsync.");
             var pubResp = await client.PublishAsync(topicArn, msgText);
             if (pubResp.HttpStatusCode == System.Net.HttpStatusCode.OK)
             {

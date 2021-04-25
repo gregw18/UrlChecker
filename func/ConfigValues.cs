@@ -39,11 +39,14 @@ namespace GAWUrlChecker
                     // stored in the key vault, rather than an environment variable.)
                     Dictionary<string, bool> isSecret = new Dictionary<string, bool>();
                     isSecret.Add("secret1", true);
+                    isSecret.Add("awsAccessKeyId", true);
+                    isSecret.Add("awsSecretAccessKey", true);
                     isSecret.Add("webSiteUrl", false);
                     isSecret.Add("shareName", false);
                     isSecret.Add("dirName", false);
                     isSecret.Add("lastChangedFileName", false);
                     isSecret.Add("snsTopic", false);
+                    isSecret.Add("awsRegionName", false);
 
                     // Read each item in and add name/value to the config dictionary.
                     foreach (KeyValuePair<string, bool> kvp in isSecret)

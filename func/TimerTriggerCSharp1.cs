@@ -16,26 +16,36 @@ namespace GAWUrlChecker
         public static void Run([TimerTrigger("0 0 5 * * *")]TimerInfo myTimer, 
                                 ILogger log)
         {
-            LoggerFacade.UseILogger(log);
-            LoggerFacade.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
-            LoggerFacade.LogInformation("In Run.");
+            try
+            {
+                LoggerFacade.UseILogger(log);
+                LoggerFacade.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+                LoggerFacade.LogInformation("In Run.");
 
-            LogEnvStrings();
-            ConfigValues.Initialize();
+                LogEnvStrings();
+                ConfigValues.Initialize();
 
-            string shareName = ConfigValues.GetValue("shareName");
-            string dirName = ConfigValues.GetValue("dirName");
-            string fileName = ConfigValues.GetValue("lastChangedFileName");
+                string shareName = ConfigValues.GetValue("shareName");
+                string dirName = ConfigValues.GetValue("dirName");
+                string fileName = ConfigValues.GetValue("lastChangedFileName");
 
-            var azureFiles = new AzureFileShare(shareName, dirName);
-            Task<bool> task = azureFiles.WriteToFile(fileName, "Jan 29, 2021");
-            LoggerFacade.LogInformation($"Finished write, result={task.Result}.");
+                var azureFiles = new AzureFileShare(shareName, dirName);
+                Task<bool> task = azureFiles.WriteToFile(fileName, "Jan 29, 2021");
+                LoggerFacade.LogInformation($"Finished write, result={task.Result}.");
 
-            Task<string> lastMod = azureFiles.ReadFile(fileName);
-            LoggerFacade.LogInformation($"Finished read, contents = {lastMod.Result}");
-            //string myUrl = @"https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection/prevention-risks/covid-19-vaccine-treatment/vaccine-rollout.html";
-            //string lastDate = GetLastModifiedDate(myUrl);
-            //LoggerFacade.LogInformation($"lastModified={lastDate}.");
+                Task<string> lastMod = azureFiles.ReadFile(fileName);
+                LoggerFacade.LogInformation($"Finished read, contents = {lastMod.Result}");
+
+                SendMsg_Succeeds();
+                            
+                //string myUrl = @"https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection/prevention-risks/covid-19-vaccine-treatment/vaccine-rollout.html";
+                //string lastDate = GetLastModifiedDate(myUrl);
+                //LoggerFacade.LogInformation($"lastModified={lastDate}.");
+            }
+            catch (Exception ex)
+            {
+                LoggerFacade.LogError(ex, "Exception in TimerTriggerCSharp1.Run.");
+            }
 
         }
 
@@ -70,6 +80,22 @@ namespace GAWUrlChecker
                 LoggerFacade.LogInformation( $"key: {s}, value:{envStrings[s]}");
             }
             LoggerFacade.LogInformation("--------\n");
+        }
+
+        private static async void SendMsg_Succeeds()
+        {
+            try
+            {
+                Notification sns = new Notification();
+                string topic = ConfigValues.GetValue("snsTopic");
+                LoggerFacade.LogInformation($"topic={topic}");
+                string testMsg = "test msg";
+                bool result = await sns.SendSnsMessage(topic, testMsg);
+            }
+            catch (Exception ex)
+            {
+                LoggerFacade.LogError(ex, "Exception in SendMsg_Succeeds");
+            }
         }
 
     }

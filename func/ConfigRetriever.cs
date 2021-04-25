@@ -21,7 +21,7 @@ namespace GAWUrlChecker
         {
             string value = System.Environment.GetEnvironmentVariable(keyName) ?? "";
             LoggerFacade.LogInformation($"config {keyName}={value}");
-            Console.WriteLine($"config {keyName}={value}");
+            // Console.WriteLine($"config {keyName}={value}");
 
             return value;
         }
