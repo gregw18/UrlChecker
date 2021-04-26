@@ -25,7 +25,7 @@ namespace GAWUrlChecker
         // Timer runs at 5am and 11am every day, eastern standard
         // (Cron expression uses UTC.)
         [FunctionName("TimerTriggerCSharp1")]
-        public static void Run([TimerTrigger("0 0 10,16 * * *")]TimerInfo myTimer, 
+        public static async void Run([TimerTrigger("0 0 10,16 * * *")]TimerInfo myTimer, 
                                 ILogger log)
         {
             try
@@ -35,17 +35,16 @@ namespace GAWUrlChecker
                 LoggerFacade.LogInformation("In Run.");
 
                 // LogEnvStrings();
-                CheckIfPageChanged();
+                await CheckIfPageChanged();
                 LoggerFacade.LogInformation("Finished Run.");
             }
             catch (Exception ex)
             {
                 LoggerFacade.LogError(ex, "Exception in TimerTriggerCSharp1.Run.");
             }
-
         }
 
-        public static async void CheckIfPageChanged()
+        public static async Task CheckIfPageChanged()
         {
             try
             {
@@ -83,7 +82,6 @@ namespace GAWUrlChecker
             {
                 LoggerFacade.LogError(ex, "Exception in TimerTriggerCSharp1.CheckIfPageChanged.");
             }
-
         }
 
         // Return html from requested page.

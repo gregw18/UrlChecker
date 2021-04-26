@@ -20,7 +20,7 @@ namespace GAWUrlChecker
         public string ReadValue(string keyName)
         {
             string value = System.Environment.GetEnvironmentVariable(keyName) ?? "";
-            LoggerFacade.LogInformation($"config {keyName}={value}");
+            // LoggerFacade.LogInformation($"config {keyName}={value}");
             // Console.WriteLine($"config {keyName}={value}");
 
             return value;
@@ -43,7 +43,7 @@ namespace GAWUrlChecker
             {
                 var result = client.GetSecret(keyName);
                 value = result.Value.Value;
-                LoggerFacade.LogInformation($"secret {keyName}={value}");
+                //LoggerFacade.LogInformation($"secret {keyName}={value}");
             }
             catch (RequestFailedException e)
             {

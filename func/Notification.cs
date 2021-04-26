@@ -36,7 +36,6 @@ namespace GAWUrlChecker
                 LoggerFacade.LogError(ex, "Exception in Notification ctor.");
             }
             LoggerFacade.LogInformation("Finished Notification ctor.");
-
         }
 
         // Send message. If topic doesn't already exist, creates it.
@@ -62,27 +61,6 @@ namespace GAWUrlChecker
             
             return sentMsg;
         }
-
-
-/*
-        private async Task<int> CreateAndSend( string topic, string msgText)
-        {
-            LoggerFacade.LogInformation("Starting CreateAndSend.");
-            //var tokenSrc = new CancellationTokenSource();
-            //cancelToken = tokenSrc.Token;
-
-            //string myTopic = "TestTopic";
-            //string msgText = "This is a test message.";
-            LoggerFacade.LogInformation("CreateAndSend about to await.");
-            if (await CreateTopic(topic))
-            {
-                bool sendResult = await SendSnsMessage(topic, msgText);
-            }
-            LoggerFacade.LogInformation("Finished CreateAndSend.");
-            
-            return 0;
-        }
-*/
 
         private async Task<string> GetTopicArn(string topic)
         {

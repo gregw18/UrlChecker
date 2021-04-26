@@ -114,7 +114,6 @@ namespace GAWUrlChecker
                     LoggerFacade.LogInformation($"Finished WriteAsync, length={bytes.Length}.");
                 }
             }
-
             LoggerFacade.LogInformation("Finished WriteToFile.");
 
             return wroteOk;
@@ -142,11 +141,10 @@ namespace GAWUrlChecker
                 }
                 else
                 {
-                    // Am pretending that file was deleted, if if never existed.
+                    // Am pretending that file was deleted, if it never existed.
                     LoggerFacade.LogInformation("File never existed.");
                     isDeleted = true;
                 }
-               
             }
 
             return isDeleted;
