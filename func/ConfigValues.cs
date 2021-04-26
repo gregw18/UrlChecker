@@ -61,7 +61,7 @@ namespace GAWUrlChecker
                         }
                     }
                     isInitialized = true;
-                    LogValues();
+                    // LogValues();
                 }
             }
             LoggerFacade.LogInformation("Finished ConfigValues.Initialize.");
@@ -87,7 +87,7 @@ namespace GAWUrlChecker
                          $"{key}, which doesn't exist.";
                 LoggerFacade.LogError(ex, errMsg);
             }
-            LoggerFacade.LogInformation($"for key: {key}, found value: {value}");
+            // LoggerFacade.LogInformation($"for key: {key}, found value: {value}");
 
             return value;
         }

@@ -8,12 +8,24 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 
 
+// Azure function, timer triggered, that checks whether a given web page has changed
+// since the last time it was checked. If yes, sends an email to that effect.
+// Uses dateModified property that happens to be in the web page that I'm interested in
+// to tell whether the page has changed. Uses AWS SNS to send the email, as Azure doesn't
+// appear to have service for sending emails, and I thought it would be interesting to see
+// what it takes to get Azure and AWS to work together.
+// Automatically publishes local settings to the azure function, for most configuration,
+// but also stores some secrets in an Azure Key Vault - currently the AWS access keys.
+// Stores date the page was last changed in an Azure Storage file share.
+
 namespace GAWUrlChecker
 {
     public static class TimerTriggerCSharp1
     {
+        // Timer runs at 5am and 11am every day, eastern standard
+        // (Cron expression uses UTC.)
         [FunctionName("TimerTriggerCSharp1")]
-        public static void Run([TimerTrigger("0 0 5 * * *")]TimerInfo myTimer, 
+        public static void Run([TimerTrigger("0 0 10,16 * * *")]TimerInfo myTimer, 
                                 ILogger log)
         {
             try
@@ -22,26 +34,9 @@ namespace GAWUrlChecker
                 LoggerFacade.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
                 LoggerFacade.LogInformation("In Run.");
 
-                //LogEnvStrings();
-                ConfigValues.Initialize();
+                // LogEnvStrings();
                 CheckIfPageChanged();
-
-                //string shareName = ConfigValues.GetValue("shareName");
-                //string dirName = ConfigValues.GetValue("dirName");
-                //string fileName = ConfigValues.GetValue("lastChangedFileName");
-
-                //var azureFiles = new AzureFileShare(shareName, dirName);
-                //Task<bool> task = azureFiles.WriteToFile(fileName, "Jan 29, 2021");
-                //LoggerFacade.LogInformation($"Finished write, result={task.Result}.");
-
-                //Task<string> lastMod = azureFiles.ReadFile(fileName);
-                //LoggerFacade.LogInformation($"Finished read, contents = {lastMod.Result}");
-
-                //SendMsg_Succeeds();
-                            
-                //string myUrl = @"https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection/prevention-risks/covid-19-vaccine-treatment/vaccine-rollout.html";
-                //string lastDate = GetLastModifiedDate(myUrl);
-                //LoggerFacade.LogInformation($"lastModified={lastDate}.");
+                LoggerFacade.LogInformation("Finished Run.");
             }
             catch (Exception ex)
             {
@@ -59,13 +54,15 @@ namespace GAWUrlChecker
                 //LogEnvStrings();
                 ConfigValues.Initialize();
 
-                // Read in html for given page.
+                // Read in html for requested page.
                 string url = ConfigValues.GetValue("webSiteUrl");
                 string pageText = GetPageText(url);
+                // await SavePageText(pageText);
+
                 // Parse out last changed date.
                 string lastChangedDate = GetChangedDate(pageText);
                 
-                // Compare to date from last time checked page.
+                // Compare to date from the last time we checked the page.
                 // If different:
                 //      Save new date to check against last time.
                 //      Send message that page changed.
@@ -101,13 +98,16 @@ namespace GAWUrlChecker
             {
                 htmlResponse = sr.ReadToEnd();
             }
-            //LoggerFacade.LogInformation($"response={htmlResponse}");
+            // LoggerFacade.LogInformation($"response={htmlResponse}");
             LoggerFacade.LogInformation("Finished GetPageText.");
 
             return htmlResponse;
         }
 
         // Parse out the last changed date from the given text.
+        // For the page that I am interested in, there is dateModified property
+        // near the bottom of the page that appears to be updated whenever the page's
+        // content is updated.
         public static string GetChangedDate(string htmlResponse)
         {
             // Searching from end because target is at bottom of page.
@@ -149,6 +149,11 @@ namespace GAWUrlChecker
             }
 
             return sentOk;
+        }
+
+        private static async Task SavePageText(string text)
+        {
+            await File.WriteAllTextAsync("samplePageText.txt", text);
         }
 
     }
