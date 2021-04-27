@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 using Xunit;
 
 using GAWUrlChecker;
@@ -23,40 +25,19 @@ namespace tests
         public async void StoreMatchedDate_Matches()
         {
             string fileName = "goodtest.txt";
-            PageChangeTracker pageTracker = new PageChangeTracker(fileName, azureFileShare);
-            string expectedDate = "Jan 23, 2019";
-            var wroteOk = await pageTracker.SaveChangeDate(expectedDate);
-
-            if (wroteOk)
-            {
-                LoggerFacade.LogInformation($"expectedDate={expectedDate}.");
-                Assert.False(pageTracker.HasDateChanged(expectedDate));
-            }
-            else
-            {
-                Assert.False(1==0);
-            }
-            await azureFileShare.DeleteFile(fileName);
+            string savedDate = "Jan 23, 2019";
+            string newDate = savedDate;
+            await TestFileMatch(fileName, savedDate, newDate, false);
         }
 
         [Fact]
         public async void StoreMisatchedDate_NoMatch()
         {
             string fileName = "goodtest2.txt";
-            PageChangeTracker pageTracker = new PageChangeTracker(fileName, azureFileShare);
+            //PageChangeTracker pageTracker = new PageChangeTracker(fileName, azureFileShare);
             string savedDate = "Jan 2, 2019";
-            string checkDate = "Jan 13, 2019";
-            var wroteOk = await pageTracker.SaveChangeDate(savedDate);
-
-            if (wroteOk)
-            {
-                Assert.True(pageTracker.HasDateChanged(checkDate));
-            }
-            else
-            {
-                Assert.False(1==0);
-            }
-            await azureFileShare.DeleteFile(fileName);
+            string newDate = "Jan 13, 2019";
+            await TestFileMatch(fileName, savedDate, newDate, true);
         }
 
         [Fact]
@@ -68,5 +49,27 @@ namespace tests
 
             await azureFileShare.DeleteFile(fileName);
         }
+
+        private async Task TestFileMatch(string fileName, 
+                                                string savedDate, 
+                                                string newDate,
+                                                bool expectedResult)
+        {
+            PageChangeTracker pageTracker = new PageChangeTracker(fileName, azureFileShare);
+            var wroteOk = await pageTracker.SaveChangeDate(savedDate);
+
+            if (wroteOk)
+            {
+                Assert.Equal(expectedResult, pageTracker.HasDateChanged(newDate));
+            }
+            else
+            {
+                // If failed to write to the file, fail.
+                Assert.False(1==0);
+            }
+            // Clean up file so don't have test files left on share.
+            await azureFileShare.DeleteFile(fileName);
+        }
+
     }
 }
