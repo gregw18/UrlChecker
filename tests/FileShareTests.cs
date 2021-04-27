@@ -1,9 +1,3 @@
-using Microsoft.Extensions.Logging.Abstractions;
-
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 using Xunit;
 
 using GAWUrlChecker;
@@ -47,6 +41,8 @@ namespace tests
                 LoggerFacade.LogInformation("ReadExisting test, finished read.");
             }
             Assert.Equal(fileContents, actualContents);
+
+            await azureFiles.DeleteFile(fileName);
         }
 
         [Fact]

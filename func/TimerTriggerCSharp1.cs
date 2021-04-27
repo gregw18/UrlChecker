@@ -25,7 +25,7 @@ namespace GAWUrlChecker
         // Timer runs at 5am and 11am every day, eastern standard
         // (Cron expression uses UTC.)
         [FunctionName("TimerTriggerCSharp1")]
-        public static async void Run([TimerTrigger("0 0 10,16 * * *")]TimerInfo myTimer, 
+        public static async Task Run([TimerTrigger("0 0 10,16 * * *")]TimerInfo myTimer, 
                                 ILogger log)
         {
             try
@@ -44,8 +44,9 @@ namespace GAWUrlChecker
             }
         }
 
-        public static async Task CheckIfPageChanged()
+        public static async Task<bool> CheckIfPageChanged()
         {
+            bool dateChanged = false;
             try
             {
                 LoggerFacade.LogInformation("Starting CheckIfPageChanged.");
@@ -59,36 +60,44 @@ namespace GAWUrlChecker
                 // await SavePageText(pageText);
 
                 // Parse out last changed date.
-                string lastChangedDate = GetChangedDate(pageText);
-                
-                // Compare to date from the last time we checked the page.
-                // If different:
-                //      Save new date to check against last time.
-                //      Send message that page changed.
-                // PageChangeTracker chgTracker = new PageChangeTracker( 
-                //                        ConfigValues.GetValue("lastChangedFileName"));
-                string shareName = ConfigValues.GetValue("shareName");
-                string dirName = ConfigValues.GetValue("dirName");
-                string fileName = ConfigValues.GetValue("lastChangedFileName");
-                var azureFiles = new AzureFileShare(shareName, dirName);
-                var chgTracker = new PageChangeTracker(fileName, azureFiles);
-                
-                bool dateChanged = false;
-                if (chgTracker.HasDateChanged(lastChangedDate))
+                if (pageText.Trim().Length > 0)
                 {
-                    await chgTracker.SaveChangeDate(lastChangedDate);
-                    var result = await SendMessage(lastChangedDate, url);
-                    if (result)
+                    string lastChangedDate = GetChangedDate(pageText);
+                    
+                    // Compare to date from the last time we checked the page.
+                    // If different:
+                    //      Save new date to check against last time.
+                    //      Send message that page changed.
+                    // PageChangeTracker chgTracker = new PageChangeTracker( 
+                    //                        ConfigValues.GetValue("lastChangedFileName"));
+                    //string shareName = ConfigValues.GetValue("shareName");
+                    //string dirName = ConfigValues.GetValue("dirName");
+                    //string fileName = ConfigValues.GetValue("lastChangedFileName");
+                    //var azureFiles = new AzureFileShare(shareName, dirName);
+                    PageChangeTracker chgTracker = GetTracker();
+                    
+                    if (chgTracker.HasDateChanged(lastChangedDate))
                     {
-                        dateChanged = true;
+                        await chgTracker.SaveChangeDate(lastChangedDate);
+                        var result = await SendMessage(lastChangedDate, url);
+                        if (result)
+                        {
+                            dateChanged = true;
+                        }
                     }
+                    LoggerFacade.LogInformation($"Finished CheckIfPageChanged, dateChanged={dateChanged}.");
                 }
-                LoggerFacade.LogInformation($"Finished CheckIfPageChanged, dateChanged={dateChanged}.");
+                else
+                {
+                    LoggerFacade.LogError($"CheckIfPageChanged, unable to read from web page: {url}");
+                }
             }
             catch (Exception ex)
             {
                 LoggerFacade.LogError(ex, "Exception in TimerTriggerCSharp1.CheckIfPageChanged.");
             }
+
+            return dateChanged;
         }
 
         // Return html from requested page.
@@ -122,6 +131,17 @@ namespace GAWUrlChecker
             LoggerFacade.LogInformation($"GetChangedDate, dateModified={lastModified}");
             
             return lastModified;
+        }
+
+        private static PageChangeTracker GetTracker()
+        {
+            string shareName = ConfigValues.GetValue("shareName");
+            string dirName = ConfigValues.GetValue("dirName");
+            string fileName = ConfigValues.GetValue("lastChangedFileName");
+            var azureFiles = new AzureFileShare(shareName, dirName);
+            var chgTracker = new PageChangeTracker(fileName, azureFiles);
+            
+            return chgTracker;
         }
 
         public static void LogEnvStrings()
