@@ -24,7 +24,7 @@ namespace tests
             Notification sns = new Notification();
             string topic = ConfigValues.GetValue("snsTopic");
             LoggerFacade.LogInformation($"topic={topic}");
-            string testMsg = "test msg";
+            string testMsg = "Message from SendMsg_Succeeds unit test.";
             bool result = await sns.SendSnsMessage(topic, testMsg);
             Assert.True(result);
         }
