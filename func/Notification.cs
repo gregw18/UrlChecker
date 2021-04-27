@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -6,6 +7,7 @@ using Amazon;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 
+[assembly: InternalsVisibleTo("tests")]
 namespace GAWUrlChecker
 {
     // Adaptor for the AWS SNS functionality. Provides ability to send SNS messages for
@@ -62,7 +64,9 @@ namespace GAWUrlChecker
             return sentMsg;
         }
 
-        private async Task<string> GetTopicArn(string topic)
+        // Expects AWS topic arns of the form "arn:aws:sns:ca-central-1:666777888999:TestTopic"
+        // Checks that everything after the last ":" matches the requested topic.
+        internal async Task<string> GetTopicArn(string topic)
         {
             LoggerFacade.LogInformation("Starting GetTopicArn.");
             string arn = "";
@@ -72,7 +76,8 @@ namespace GAWUrlChecker
             foreach(Topic t in resp.Topics)
             {
                 LoggerFacade.LogInformation($"topic: {t.TopicArn}");
-                if (t.TopicArn.EndsWith(topic))
+                string thisName = t.TopicArn.Substring(t.TopicArn.LastIndexOf(":") + 1);
+                if (thisName == topic)
                 {
                     arn = t.TopicArn;
                     break;

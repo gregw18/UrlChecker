@@ -79,6 +79,32 @@ namespace tests
         }
 
         [Fact]
+        public async void WriteToNewFile_Succeeds()
+        {
+            bool result3 = false;
+
+            string fileName = "writeToNew.txt";
+            LoggerFacade.LogInformation("Starting WriteToNew test.");
+
+            // Write once to file, to ensure exists.
+            var azureFiles = new AzureFileShare(shareName, dirName);
+            result3 = await azureFiles.DeleteFile(fileName);
+            if (result3)
+            {
+                var result1 = await azureFiles.WriteToFile(fileName, "data version 1");
+                if (result1)
+                {
+                    LoggerFacade.LogInformation("WriteToNew test, finished write.");
+
+                    // Delete file.
+                    var result2 = await azureFiles.DeleteFile(fileName);
+                    LoggerFacade.LogInformation("WriteToNew test, finished delete.");
+                }
+            }
+            Assert.True(result3);
+        }
+
+        [Fact]
         public async void ReadInvalidFile_ReturnsEmpty()
         {
             string fileName = "NotAFile.txt";
