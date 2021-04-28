@@ -35,7 +35,7 @@ namespace GAWUrlChecker
                 LoggerFacade.LogInformation("In Run.");
 
                 // LogEnvStrings();
-                await CheckIfPageChanged();
+                await DidPageChange(ConfigValues.GetValue("lastChangedFileName"));
                 LoggerFacade.LogInformation("Finished Run.");
             }
             catch (Exception ex)
@@ -44,7 +44,7 @@ namespace GAWUrlChecker
             }
         }
 
-        public static async Task<bool> CheckIfPageChanged()
+        public static async Task<bool> DidPageChange(string lastChangedFileName)
         {
             bool dateChanged = false;
             try
@@ -74,7 +74,7 @@ namespace GAWUrlChecker
                     //string dirName = ConfigValues.GetValue("dirName");
                     //string fileName = ConfigValues.GetValue("lastChangedFileName");
                     //var azureFiles = new AzureFileShare(shareName, dirName);
-                    PageChangeTracker chgTracker = GetTracker();
+                    PageChangeTracker chgTracker = GetTracker(lastChangedFileName);
                     
                     if (chgTracker.HasDateChanged(lastChangedDate))
                     {
@@ -133,11 +133,10 @@ namespace GAWUrlChecker
             return lastModified;
         }
 
-        private static PageChangeTracker GetTracker()
+        private static PageChangeTracker GetTracker(string fileName)
         {
             string shareName = ConfigValues.GetValue("shareName");
             string dirName = ConfigValues.GetValue("dirName");
-            string fileName = ConfigValues.GetValue("lastChangedFileName");
             var azureFiles = new AzureFileShare(shareName, dirName);
             var chgTracker = new PageChangeTracker(fileName, azureFiles);
             
