@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 // Azure function, timer triggered, that checks whether a given web page has changed
 // since the last time it was checked. If yes, sends an email to that effect.
-// Uses dateModified property that happens to be in the web page that I'm interested in
+// Uses "dateModified" property that happens to be in the web page that I'm interested in
 // to tell whether the page has changed. Uses AWS SNS to send the email, as Azure doesn't
 // appear to have service for sending emails, and I thought it would be interesting to see
 // what it takes to get Azure and AWS to work together.
@@ -32,9 +32,8 @@ namespace GAWUrlChecker
             {
                 LoggerFacade.UseILogger(log);
                 LoggerFacade.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
-                LoggerFacade.LogInformation("In Run.");
-
                 // LogEnvStrings();
+
                 string url = ConfigValues.GetValue("webSiteUrl");
                 string fileName = ConfigValues.GetValue("lastChangedFileName");
                 await DidPageChange(url, fileName);
@@ -61,9 +60,9 @@ namespace GAWUrlChecker
                 string pageText = GetPageText(pageUrl);
                 // await SavePageText(pageText);
 
-                // Parse out last changed date.
                 if (pageText.Trim().Length > 0)
                 {
+                    // Parse out last changed date.
                     string lastChangedDate = GetChangedDate(pageText);
                     
                     // Compare to date from the last time we checked the page.
@@ -75,11 +74,7 @@ namespace GAWUrlChecker
                     if (chgTracker.HasDateChanged(lastChangedDate))
                     {
                         await chgTracker.SaveChangeDate(lastChangedDate);
-                        var result = await SendMessage(lastChangedDate, pageUrl);
-                        if (result)
-                        {
-                            dateChanged = true;
-                        }
+                        dateChanged = await SendMessage(lastChangedDate, pageUrl);
                     }
                     LoggerFacade.LogInformation($"Finished CheckIfPageChanged, dateChanged={dateChanged}.");
                 }
@@ -116,19 +111,21 @@ namespace GAWUrlChecker
         }
 
         // Parse out the last changed date from the given text.
-        // For the page that I am interested in, there is dateModified property
+        // For the page that I am interested in, there is a dateModified property
         // near the bottom of the page that appears to be updated whenever the page's
         // content is updated.
         public static string GetChangedDate(string htmlResponse)
         {
-            // Searching from end because target is at bottom of page.
-            string target = "dateModified";
+            // Searching from end of string because target is at bottom of page.
+            string target = ConfigValues.GetValue("targetText");
+            int offset = Int32.Parse(ConfigValues.GetValue("changingTextOffset"));
+            int length = Int32.Parse(ConfigValues.GetValue("changingTextLength"));
             int startLoc = htmlResponse.LastIndexOf(target);
             LoggerFacade.LogInformation($"GetChangedDate, startLoc={startLoc}");
             string lastModified = "";
             if (startLoc > -1)
             {
-                lastModified = htmlResponse.Substring(startLoc + target.Length + 2, 10);
+                lastModified = htmlResponse.Substring(startLoc + target.Length + offset, length);
                 LoggerFacade.LogInformation($"GetChangedDate, dateModified={lastModified}");
             }
             else

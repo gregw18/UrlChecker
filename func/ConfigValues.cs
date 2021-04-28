@@ -47,6 +47,9 @@ namespace GAWUrlChecker
                     isSecret.Add("lastChangedFileName", false);
                     isSecret.Add("snsTopic", false);
                     isSecret.Add("awsRegionName", false);
+                    isSecret.Add("targetText", false);
+                    isSecret.Add("changingTextOffset", false);
+                    isSecret.Add("changingTextLength", false);
 
                     // Read each item in and add name/value to the config dictionary.
                     foreach (KeyValuePair<string, bool> kvp in isSecret)
