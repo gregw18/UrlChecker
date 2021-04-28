@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 
 using Xunit;
@@ -13,10 +14,12 @@ namespace tests
     {
         ConfigFixture fixture;
         AzureFileShare azureFileShare;
+        string goodUrl;
 
         public SystemTests(ConfigFixture fixture)
         {
             this.fixture = fixture;
+            goodUrl = ConfigValues.GetValue("webSiteUrl");
             string shareName = ConfigValues.GetValue("shareName");
             string dirName = ConfigValues.GetValue("dirName");
             azureFileShare = new AzureFileShare(shareName, dirName);
@@ -29,12 +32,12 @@ namespace tests
             // the saved date, then run the check - should match, unless
             // website changed in between the two calls.
             string fileName = "goodtest3.txt";
-            string htmlText = TimerTriggerCSharp1.GetPageText(ConfigValues.GetValue("webSiteUrl"));
+            string htmlText = TimerTriggerCSharp1.GetPageText(goodUrl);
             string savedDate = TimerTriggerCSharp1.GetChangedDate(htmlText);
             var result = await azureFileShare.WriteToFile(fileName, savedDate);
             if (result)
             { 
-                bool checkResult = await TimerTriggerCSharp1.DidPageChange(fileName);
+                bool checkResult = await TimerTriggerCSharp1.DidPageChange(goodUrl, fileName);
                 Assert.False(checkResult);
             }
             else
@@ -54,8 +57,29 @@ namespace tests
             var result = await azureFileShare.WriteToFile(fileName, savedDate);
             if (result)
             { 
-                bool checkResult = await TimerTriggerCSharp1.DidPageChange(fileName);
+                bool checkResult = await TimerTriggerCSharp1.DidPageChange(goodUrl, fileName);
                 Assert.True(checkResult);
+            }
+            else
+            {
+                Assert.True(false, $"Failed to save expected date to file: {fileName}");
+            }
+            await azureFileShare.DeleteFile(fileName);
+        }
+
+        [Fact]
+        public async void ReadInvalidPage_NoMatch()
+        {
+            // Try reading in a page that doesn't have the expected "modified last"
+            // tag, expect to get an exception.
+            string fileName = "badtest3.txt";
+            string badUrl = "https://www.google.com/";
+            string savedDate = "BadSaveDate";
+            var result = await azureFileShare.WriteToFile(fileName, savedDate);
+            if (result)
+            { 
+                Func<Task> act = () => TimerTriggerCSharp1.DidPageChange(badUrl, fileName);
+                await Assert.ThrowsAsync<ArgumentException>(act);
             }
             else
             {

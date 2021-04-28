@@ -35,7 +35,9 @@ namespace GAWUrlChecker
                 LoggerFacade.LogInformation("In Run.");
 
                 // LogEnvStrings();
-                await DidPageChange(ConfigValues.GetValue("lastChangedFileName"));
+                string url = ConfigValues.GetValue("webSiteUrl");
+                string fileName = ConfigValues.GetValue("lastChangedFileName");
+                await DidPageChange(url, fileName);
                 LoggerFacade.LogInformation("Finished Run.");
             }
             catch (Exception ex)
@@ -44,7 +46,8 @@ namespace GAWUrlChecker
             }
         }
 
-        public static async Task<bool> DidPageChange(string lastChangedFileName)
+        public static async Task<bool> DidPageChange(string pageUrl,
+                                                    string lastChangedFileName)
         {
             bool dateChanged = false;
             try
@@ -55,8 +58,7 @@ namespace GAWUrlChecker
                 ConfigValues.Initialize();
 
                 // Read in html for requested page.
-                string url = ConfigValues.GetValue("webSiteUrl");
-                string pageText = GetPageText(url);
+                string pageText = GetPageText(pageUrl);
                 // await SavePageText(pageText);
 
                 // Parse out last changed date.
@@ -68,18 +70,12 @@ namespace GAWUrlChecker
                     // If different:
                     //      Save new date to check against last time.
                     //      Send message that page changed.
-                    // PageChangeTracker chgTracker = new PageChangeTracker( 
-                    //                        ConfigValues.GetValue("lastChangedFileName"));
-                    //string shareName = ConfigValues.GetValue("shareName");
-                    //string dirName = ConfigValues.GetValue("dirName");
-                    //string fileName = ConfigValues.GetValue("lastChangedFileName");
-                    //var azureFiles = new AzureFileShare(shareName, dirName);
                     PageChangeTracker chgTracker = GetTracker(lastChangedFileName);
                     
                     if (chgTracker.HasDateChanged(lastChangedDate))
                     {
                         await chgTracker.SaveChangeDate(lastChangedDate);
-                        var result = await SendMessage(lastChangedDate, url);
+                        var result = await SendMessage(lastChangedDate, pageUrl);
                         if (result)
                         {
                             dateChanged = true;
@@ -89,12 +85,13 @@ namespace GAWUrlChecker
                 }
                 else
                 {
-                    LoggerFacade.LogError($"CheckIfPageChanged, unable to read from web page: {url}");
+                    LoggerFacade.LogError($"CheckIfPageChanged, unable to read from web page: {pageUrl}");
                 }
             }
             catch (Exception ex)
             {
                 LoggerFacade.LogError(ex, "Exception in TimerTriggerCSharp1.CheckIfPageChanged.");
+                throw;
             }
 
             return dateChanged;
@@ -127,9 +124,18 @@ namespace GAWUrlChecker
             // Searching from end because target is at bottom of page.
             string target = "dateModified";
             int startLoc = htmlResponse.LastIndexOf(target);
-            string lastModified = htmlResponse.Substring(startLoc + target.Length + 2, 10);
-            LoggerFacade.LogInformation($"GetChangedDate, dateModified={lastModified}");
-            
+            LoggerFacade.LogInformation($"GetChangedDate, startLoc={startLoc}");
+            string lastModified = "";
+            if (startLoc > -1)
+            {
+                lastModified = htmlResponse.Substring(startLoc + target.Length + 2, 10);
+                LoggerFacade.LogInformation($"GetChangedDate, dateModified={lastModified}");
+            }
+            else
+            {
+                LoggerFacade.LogInformation("GetChangedDate, about to throw exception.");
+                throw new ArgumentException($"Unable to locate target text: {target} in provided text: {htmlResponse}");
+            }
             return lastModified;
         }
 
@@ -177,7 +183,7 @@ namespace GAWUrlChecker
 
         private static async Task SavePageText(string text)
         {
-            await File.WriteAllTextAsync("samplePageText.txt", text);
+            await File.WriteAllTextAsync("samplePageText2.txt", text);
         }
 
     }
