@@ -73,15 +73,23 @@ namespace GAWUrlChecker
             var resp = await client.ListTopicsAsync(cancelToken);
             
             LoggerFacade.LogInformation($"GetTopicArn finished await, response = {resp.HttpStatusCode}, have {resp.Topics.Count} topics.");
-            foreach(Topic t in resp.Topics)
+            while (true)
             {
-                LoggerFacade.LogInformation($"topic: {t.TopicArn}");
-                string thisName = t.TopicArn.Substring(t.TopicArn.LastIndexOf(":") + 1);
-                if (thisName == topic)
+                foreach(Topic t in resp.Topics)
                 {
-                    arn = t.TopicArn;
-                    break;
+                    LoggerFacade.LogInformation($"topic: {t.TopicArn}");
+                    string thisName = t.TopicArn.Substring(t.TopicArn.LastIndexOf(":") + 1);
+                    if (thisName == topic)
+                    {
+                        arn = t.TopicArn;
+                        break;
+                    }
                 }
+                if (resp.NextToken.Length > 0)
+                {
+                    resp = await client.ListTopicsAsync(resp.NextToken, cancelToken);
+                }
+                else break;
             }
             LoggerFacade.LogInformation( $"Finished GetTopicArn, arn={arn}");
 
