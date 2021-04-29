@@ -52,9 +52,7 @@ namespace GAWUrlChecker
             try
             {
                 LoggerFacade.LogInformation("Starting CheckIfPageChanged.");
-
                 //LogEnvStrings();
-                ConfigValues.Initialize();
 
                 // Read in html for requested page.
                 string pageText = GetPageText(pageUrl);

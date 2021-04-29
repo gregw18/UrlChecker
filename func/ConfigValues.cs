@@ -61,7 +61,7 @@ namespace GAWUrlChecker
                         }
                     }
                     isInitialized = true;
-                    // LogValues();
+                    LogValues();
                 }
             }
             LoggerFacade.LogInformation("Finished ConfigValues.Initialize.");
@@ -74,6 +74,11 @@ namespace GAWUrlChecker
         public static string GetValue(string key)
         {
             LoggerFacade.LogInformation($"GetValue, about to look for key: {key}");
+            if (!isInitialized)
+            {
+                Initialize();
+            }
+            
             string value = "";
             try
             {

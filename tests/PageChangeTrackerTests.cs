@@ -51,9 +51,9 @@ namespace tests
         }
 
         private async Task TestFileMatch(string fileName, 
-                                                string savedDate, 
-                                                string newDate,
-                                                bool expectedResult)
+                                        string savedDate, 
+                                        string newDate,
+                                        bool expectedResult)
         {
             PageChangeTracker pageTracker = new PageChangeTracker(fileName, azureFileShare);
             var wroteOk = await pageTracker.SaveChangeDate(savedDate);

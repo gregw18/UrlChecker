@@ -9,7 +9,6 @@ namespace tests
 {
     // Test full process - set "last changed" value to a known value,
     // then run full check.
-    // results correctly.
     public class SystemTests : IClassFixture<ConfigFixture>
     {
         ConfigFixture fixture;

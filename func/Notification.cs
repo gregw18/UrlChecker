@@ -85,11 +85,14 @@ namespace GAWUrlChecker
                         break;
                     }
                 }
-                if (resp.NextToken.Length > 0)
+                if (resp.NextToken is null || resp.NextToken.Length == 0)
+                {
+                    break;
+                }
+                else
                 {
                     resp = await client.ListTopicsAsync(resp.NextToken, cancelToken);
                 }
-                else break;
             }
             LoggerFacade.LogInformation( $"Finished GetTopicArn, arn={arn}");
 
