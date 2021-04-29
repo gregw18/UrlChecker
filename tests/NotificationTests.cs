@@ -8,12 +8,16 @@ using GAWUrlChecker;
 
 namespace tests
 {
-    public class UnitTest1 : IClassFixture<ConfigFixture>
+    // Tests for notification:
+        // Get match for topic with complete name.
+        // Don't get match for topic with invalid name
+        // Don't get match for topic with partial match of end of name.
+        // Don't get match for topic with partial match of beginning of name.
+    public class NotificationTests : IClassFixture<ConfigFixture>
     {
-
         ConfigFixture fixture;
 
-        public UnitTest1(ConfigFixture fixture)
+        public NotificationTests(ConfigFixture fixture)
         {
             this.fixture = fixture;
         }
@@ -28,11 +32,6 @@ namespace tests
             bool result = await sns.SendSnsMessage(topic, testMsg);
             Assert.True(result);
         }
-
-        // Get match for topic with complete name.
-        // Don't get match for topic with invalid name
-        // Don't get match for topic with partial match of end of name.
-        // Don't get match for topic with partial match of beginning of name.
 
         [Fact]
         public async void ArnSearchMatch_Succeeds()
