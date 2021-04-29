@@ -56,7 +56,6 @@ namespace GAWUrlChecker
 
                 // Read in html for requested page.
                 string pageText = GetPageText(pageUrl);
-                // await SavePageText(pageText);
 
                 if (pageText.Trim().Length > 0)
                 {
