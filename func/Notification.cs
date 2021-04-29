@@ -10,13 +10,12 @@ using Amazon.SimpleNotificationService.Model;
 [assembly: InternalsVisibleTo("tests")]
 namespace GAWUrlChecker
 {
-    // Adaptor for the AWS SNS functionality. Provides ability to send SNS messages for
-    // a given topic.
+    // Adaptor for the AWS SNS functionality. Provides ability to send SNS messages (emails)
+    // for a given topic.
     public class Notification
     {
         private AmazonSimpleNotificationServiceClient client;
         private CancellationToken cancelToken;
-
 
         public Notification()
         {
@@ -45,6 +44,7 @@ namespace GAWUrlChecker
         {
             bool sentMsg = false;
          
+            // Get the ARN for the topic. If don't find it, create the topic.
             LoggerFacade.LogInformation("Starting SendSnsMessage.");
             string topicArn = await GetTopicArn(topic);
             if (topicArn.Length == 0)

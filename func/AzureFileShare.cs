@@ -52,6 +52,7 @@ namespace GAWUrlChecker
             return isOk;
         }
 
+        // Reads contents of requested file, from current file share/directory.
         public async Task<string> ReadFile(string fileName)
         {
             string fileContents = "";
@@ -88,6 +89,7 @@ namespace GAWUrlChecker
             return fileContents;
         }
 
+        // Write given text to requested file, in current file share/directory.
         public async Task<bool> WriteToFile(string fileName, 
                                                     string value)
         {
@@ -119,6 +121,7 @@ namespace GAWUrlChecker
             return wroteOk;
         }
 
+        // Delete requested file, from current file share/directory.
         public async Task<bool> DeleteFile(string fileName)
         {
             bool isDeleted = false;

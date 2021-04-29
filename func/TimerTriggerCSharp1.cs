@@ -136,6 +136,7 @@ namespace GAWUrlChecker
             return lastModified;
         }
 
+        // Create and return the PageChangeTracker.
         private static PageChangeTracker GetTracker(string fileName)
         {
             string shareName = ConfigValues.GetValue("shareName");
@@ -146,6 +147,8 @@ namespace GAWUrlChecker
             return chgTracker;
         }
 
+        // Write all environment variables to the log.
+        // Not a good idea if worried about others seeing these!
         public static void LogEnvStrings()
         {
             var envStrings = System.Environment.GetEnvironmentVariables();
@@ -158,6 +161,7 @@ namespace GAWUrlChecker
             LoggerFacade.LogInformation("--------\n");
         }
 
+        // Use AWS SNS to send an email to the configured topic.
         private static async Task<bool> SendMessage(string changeDate, string url)
         {
             bool sentOk = false;
@@ -172,12 +176,13 @@ namespace GAWUrlChecker
             }
             catch (Exception ex)
             {
-                LoggerFacade.LogError(ex, "Exception in SendMsg_Succeeds");
+                LoggerFacade.LogError(ex, "Exception in SendMessage");
             }
 
             return sentOk;
         }
 
+        // Helper to write full text from target page to a text file, for debugging.
         private static async Task SavePageText(string text)
         {
             await File.WriteAllTextAsync("samplePageText2.txt", text);

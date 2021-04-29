@@ -5,12 +5,11 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 
-using Microsoft.Extensions.Logging;
 
 namespace GAWUrlChecker
 {
-    // Provide access to given share and directory. Must call constructor before
-    // any other methods.
+    // Helper class for reading config values from environment and.
+    // secrets from an Azure Key Vault.
     public class ConfigRetriever
     {
         private SecretClient client;
@@ -21,13 +20,12 @@ namespace GAWUrlChecker
         {
             string value = System.Environment.GetEnvironmentVariable(keyName) ?? "";
             // LoggerFacade.LogInformation($"config {keyName}={value}");
-            // Console.WriteLine($"config {keyName}={value}");
 
             return value;
         }
 
         // Read given name in from secret in key vault.
-        // If accessing a different vault, create a new SecretClient to 
+        // If accessing a different vault, change the SecretClient to 
         // access that vault.
         public string ReadSecret(string vaultName, string keyName)
         {
@@ -51,7 +49,7 @@ namespace GAWUrlChecker
                                 $"status: {e.Status} " + 
                                 $"message: {e.Message}" +
                                 $"stack: {e.StackTrace}";
-                LoggerFacade.LogError(errString);
+                LoggerFacade.LogError(e, "Failed in ConfigRetriever.ReadSecret.");
             }
 
             return value;

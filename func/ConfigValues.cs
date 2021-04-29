@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace GAWUrlChecker
 {
     // Read in and provide access to config values for function.
-    // Names of config values are hardcodes, as are whether they
+    // Names of config values are hardcoded, as are whether they
     // are secrets - i.e. whether they are found in the key vault or in
     // environment variables.
     // Data stored in a dictionary of strings - if value isn't a string,
@@ -15,6 +15,9 @@ namespace GAWUrlChecker
         private static readonly object _locker = new object();
         private static Dictionary<string, string> config;
 
+        // Read in the requested variables from environment strings or key vault,
+        // so they're ready to be accessed, and can be accessed the same regardless
+        // of where they came from.
         public static bool Initialize()
         {
             lock (_locker)
@@ -22,12 +25,6 @@ namespace GAWUrlChecker
                 if (!isInitialized)
                 {
                     config = new Dictionary<string, string>();
-
-                    // Seem to be stuck in a loop. Need key vault name to create the ConfigRetriever,
-                    // but need the ConfigRetriever to retrieve the environment variable that
-                    // contains the vault name.
-                    // 1. Read vault name directly?
-                    // 2. Modify ReadSecret to accept vault name, create client if doesn't already exist?
 
                     // Treating vaultName specially because it has to be available before
                     // can read a secret.
@@ -72,6 +69,8 @@ namespace GAWUrlChecker
             return isInitialized;
         }
 
+        // Looks up the requested key in the dictionary, returns corresponding value.
+        // Returns empty string if key not found.
         public static string GetValue(string key)
         {
             LoggerFacade.LogInformation($"GetValue, about to look for key: {key}");
