@@ -2,12 +2,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 using System;
 using System.Collections.Generic;
-//using System.Environment;
 using System.IO;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 
 using Xunit;
 
@@ -27,48 +23,38 @@ namespace tests
 
         public ConfigValueTests(ConfigFixture fixture)
         {
-            LoggerFacade.LogInformation("Starting ConfigValueTests ctor");
             this.fixture = fixture;
-            LoggerFacade.LogInformation("Finished ConfigValueTests ctor");
         }
 
         [Fact]
-        public void ReadGoodEnvGetExpected()
+        public void ReadGoodEnv_GetExpected()
         {
             string key = "vaultName";
-            LoggerFacade.LogInformation("About to call getvalue");
             string value = ConfigValues.GetValue(key);
-            LoggerFacade.LogInformation($"Called GetValue, value={value}");
             Assert.Equal("urlcheckerkvus", value);
         }
 
         [Fact]
-        public void ReadBadEnvGetEmpty()
+        public void ReadBadEnv_GetEmpty()
         {
             string key = "invalidKey";
-            LoggerFacade.LogInformation("About to call getvalue");
             string value = ConfigValues.GetValue(key);
-            LoggerFacade.LogInformation($"Called GetValue, value={value}");
             Assert.Equal("", value);
         }
 
         [Fact]
-        public void ReadGoodSecretGetExpected()
+        public void ReadGoodSecret_GetExpected()
         {
             string key = "secret1";
-            LoggerFacade.LogInformation("About to call getvalue");
             string value = ConfigValues.GetValue(key);
-            LoggerFacade.LogInformation($"Called GetValue, value={value}");
             Assert.Equal("ACTUALSECRETVALUE", value);
         }
 
         [Fact]
-        public void ReadBadSecretGetEmpty()
+        public void ReadBadSecret_GetEmpty()
         {
             string key = "NotASecret";
-            LoggerFacade.LogInformation("About to call getvalue");
             string value = ConfigValues.GetValue(key);
-            LoggerFacade.LogInformation($"Called GetValue, value={value}");
             Assert.Equal("", value);
         }
 
@@ -98,24 +84,17 @@ public class ConfigFixture
     // normal azure functions environment.
     private void ReadSettingsIntoEnv()
     {
-        //private Dictionary<string, string> Values;
-
-        LoggerFacade.LogInformation("Starting ReadSettingsIntoEnv().");
         string settingsFile = @"..\..\..\..\func\local.settings.json";
         var text = File.ReadAllText(settingsFile);
-        //EnvironmentVariableTarget settings = JsonConvert.DeserializeObject<LocalSettings>(
-        //    File.ReadAllText(settingsFile));
         LoggerFacade.LogInformation($"text={text}");
 
-        //var values = JsonSerializer.Deserialize<Dictionary<string, string>>(text);
         var values = JsonSerializer.Deserialize<LocalSettings>(text);
 
-        //Console.WriteLine($"values.Count={values.Count}.");
         foreach (var setting in values.Values)
         {
-            LoggerFacade.LogInformation($"key={setting.Key}, value={setting.Value}");
+            // LoggerFacade.LogInformation($"key={setting.Key}, value={setting.Value}");
             Environment.SetEnvironmentVariable(setting.Key, setting.Value);
         }
-        LoggerFacade.LogInformation("Finished ReadSettingsIntoEnv().\n");
+        // LoggerFacade.LogInformation("Finished ReadSettingsIntoEnv().\n");
     }
 }

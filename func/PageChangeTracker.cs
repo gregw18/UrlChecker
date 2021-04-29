@@ -1,6 +1,4 @@
 using System;
-using System.IO;
-using System.Net;
 using System.Threading.Tasks;
 
 
@@ -17,11 +15,7 @@ namespace GAWUrlChecker
         {
             try
             {
-                //string shareName = ConfigValues.GetValue("shareName");
-                //string dirName = ConfigValues.GetValue("dirName");
                 this.fileName = fileName;
-
-                //azureFiles = new AzureFileShare(shareName, dirName);
                 azureFiles = myShare;
                 LoggerFacade.LogInformation($"Finished PageChangeTracker ctor");
             }
@@ -32,6 +26,7 @@ namespace GAWUrlChecker
 
         }
 
+        // Save the provided date in the configured file.
         public async Task<bool> SaveChangeDate(string newChangeDate)
         {
             var completed = await azureFiles.WriteToFile(fileName, newChangeDate);
