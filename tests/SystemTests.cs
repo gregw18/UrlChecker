@@ -21,7 +21,6 @@ namespace tests
             goodUrl = ConfigValues.GetValue("webSiteUrl");
             string shareName = ConfigValues.GetValue("shareName");
             string dirName = ConfigValues.GetValue("dirName");
-            azureFileShare = new AzureFileShare(shareName, dirName);
         }
 
         [Fact]
@@ -33,6 +32,7 @@ namespace tests
             string fileName = "goodtest3.txt";
             string htmlText = TimerTriggerCSharp1.GetPageText(goodUrl);
             string savedDate = TimerTriggerCSharp1.GetChangedDate(htmlText);
+            await SetAzureShare();
             var result = await azureFileShare.WriteToFile(fileName, savedDate);
             if (result)
             { 
@@ -53,6 +53,7 @@ namespace tests
             // the check - should not match.
             string fileName = "badtest2.txt";
             string savedDate = "Not a Valid Date";
+            await SetAzureShare();
             var result = await azureFileShare.WriteToFile(fileName, savedDate);
             if (result)
             { 
@@ -74,6 +75,7 @@ namespace tests
             string fileName = "badtest3.txt";
             string badUrl = "https://www.google.com/";
             string savedDate = "BadSaveDate";
+            await SetAzureShare();
             var result = await azureFileShare.WriteToFile(fileName, savedDate);
             if (result)
             { 
@@ -86,5 +88,13 @@ namespace tests
             }
             await azureFileShare.DeleteFile(fileName);
         }
+
+        private async Task SetAzureShare()
+        {
+            string shareName = ConfigValues.GetValue("shareName");
+            string dirName = ConfigValues.GetValue("dirName");
+            azureFileShare = await AzureFileShare.CreateAsync(shareName, dirName);
+        }
+
     }
 }

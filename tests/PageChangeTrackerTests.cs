@@ -16,9 +16,6 @@ namespace tests
         public PageChangeTrackerTests(ConfigFixture fixture)
         {
             this.fixture = fixture;
-            string shareName = ConfigValues.GetValue("shareName");
-            string dirName = ConfigValues.GetValue("dirName");
-            azureFileShare = new AzureFileShare(shareName, dirName);
         }
 
         [Fact]
@@ -44,6 +41,7 @@ namespace tests
         public async void CheckInvalidFile_NoMatch()
         {
             string fileName = "badtest1.txt";
+            await SetAzureShare();
             PageChangeTracker pageTracker = new PageChangeTracker(fileName, azureFileShare);
             Assert.True(await pageTracker.HasDateChanged("Jan 3, 2019"));
 
@@ -55,6 +53,7 @@ namespace tests
                                         string newDate,
                                         bool expectedResult)
         {
+            await SetAzureShare();
             PageChangeTracker pageTracker = new PageChangeTracker(fileName, azureFileShare);
             var wroteOk = await pageTracker.SaveChangeDate(savedDate);
 
@@ -69,6 +68,13 @@ namespace tests
             }
             // Clean up file so don't have test files left on share.
             await azureFileShare.DeleteFile(fileName);
+        }
+
+        private async Task SetAzureShare()
+        {
+            string shareName = ConfigValues.GetValue("shareName");
+            string dirName = ConfigValues.GetValue("dirName");
+            azureFileShare = await AzureFileShare.CreateAsync(shareName, dirName);
         }
 
     }

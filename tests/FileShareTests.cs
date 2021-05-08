@@ -31,7 +31,7 @@ namespace tests
             string actualContents = "";
 
             // Write data to the file.
-            var azureFiles = new AzureFileShare(shareName, dirName);
+            var azureFiles = await AzureFileShare.CreateAsync(shareName, dirName);
             var result1 = await azureFiles.WriteToFile(fileName, expectedText);
             if (result1)
             {
@@ -55,7 +55,7 @@ namespace tests
             LoggerFacade.LogInformation("Starting WriteToExisting test.");
 
             // Write once to file, to ensure exists.
-            var azureFiles = new AzureFileShare(shareName, dirName);
+            var azureFiles = await AzureFileShare.CreateAsync(shareName, dirName);
             var result1 = await azureFiles.WriteToFile(fileName, "data version 1");
             if (result1)
             {
@@ -82,7 +82,7 @@ namespace tests
             string actualText = "";
             string fileName = "writeToNew.txt";
             string expectedText = "data version 1";
-            var azureFiles = new AzureFileShare(shareName, dirName);
+            var azureFiles = await AzureFileShare.CreateAsync(shareName, dirName);
             bool result3 = await azureFiles.DeleteFile(fileName);
             if (result3)
             {
@@ -108,7 +108,7 @@ namespace tests
             LoggerFacade.LogInformation("Starting ReadInvalid test.");
 
             // Ensure that file doesn't exist.
-            var azureFiles = new AzureFileShare(shareName, dirName);
+            var azureFiles = await AzureFileShare.CreateAsync(shareName, dirName);
             var result = await azureFiles.DeleteFile(fileName);
             if (result)
             {

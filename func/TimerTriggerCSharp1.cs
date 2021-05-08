@@ -66,7 +66,7 @@ namespace GAWUrlChecker
                     // If different:
                     //      Save new date to check against last time.
                     //      Send message that page changed.
-                    PageChangeTracker chgTracker = GetTracker(lastChangedFileName);
+                    PageChangeTracker chgTracker = await GetTracker(lastChangedFileName);
                     
                     if (await chgTracker.HasDateChanged(lastChangedDate))
                     {
@@ -134,11 +134,11 @@ namespace GAWUrlChecker
         }
 
         // Create and return the PageChangeTracker.
-        private static PageChangeTracker GetTracker(string fileName)
+        private static async Task<PageChangeTracker> GetTracker(string fileName)
         {
             string shareName = ConfigValues.GetValue("shareName");
             string dirName = ConfigValues.GetValue("dirName");
-            var azureFiles = new AzureFileShare(shareName, dirName);
+            var azureFiles = await AzureFileShare.CreateAsync(shareName, dirName);
             var chgTracker = new PageChangeTracker(fileName, azureFiles);
             
             return chgTracker;

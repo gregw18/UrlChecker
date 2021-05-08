@@ -17,22 +17,14 @@ namespace GAWUrlChecker
         private static ShareDirectoryClient directory;
         private static bool isInitialized = false;
 
-        public AzureFileShare(string shareName, string dirName)
+        public static Task<AzureFileShare> CreateAsync(string shareName, string dirName)
         {
-            if (! isInitialized)
-            {
-                Task<bool> result = Initialize(shareName, dirName);
-                if (result.Result)
-                {
-                    isInitialized = true;
-                }
-            }
+            var newObj = new AzureFileShare();
+            return newObj.InitializeAsync(shareName, dirName);
         }
 
-        private async Task<bool> Initialize(string shareName, string dirName)
+        private async Task<AzureFileShare> InitializeAsync(string shareName, string dirName)
         {
-            bool isOk = false;
-
             string connectionString = System.Environment.GetEnvironmentVariable("AzureWebJobsStorage");
             LoggerFacade.LogInformation($"connectionString={connectionString}");
 
@@ -46,10 +38,10 @@ namespace GAWUrlChecker
                 if (await directory.ExistsAsync())
                 {
                     LoggerFacade.LogInformation("Finished directory.ExistsAsync.");
-                    isOk = true;
+                    isInitialized = true;
                 }
             }
-            return isOk;
+            return this;
         }
 
         // Reads contents of requested file, from current file share/directory.
