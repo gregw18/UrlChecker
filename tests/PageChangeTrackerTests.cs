@@ -45,7 +45,7 @@ namespace tests
         {
             string fileName = "badtest1.txt";
             PageChangeTracker pageTracker = new PageChangeTracker(fileName, azureFileShare);
-            Assert.True(pageTracker.HasDateChanged("Jan 3, 2019"));
+            Assert.True(await pageTracker.HasDateChanged("Jan 3, 2019"));
 
             await azureFileShare.DeleteFile(fileName);
         }
@@ -60,7 +60,7 @@ namespace tests
 
             if (wroteOk)
             {
-                Assert.Equal(expectedResult, pageTracker.HasDateChanged(newDate));
+                Assert.Equal(expectedResult, await pageTracker.HasDateChanged(newDate));
             }
             else
             {

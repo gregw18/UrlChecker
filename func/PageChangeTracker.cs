@@ -30,7 +30,7 @@ namespace GAWUrlChecker
         public async Task<bool> SaveChangeDate(string newChangeDate)
         {
             var completed = await azureFiles.WriteToFile(fileName, newChangeDate);
-            LoggerFacade.LogInformation($"Finished SaveChangeDate, result={completed}.");
+            // LoggerFacade.LogInformation($"Finished SaveChangeDate, result={completed}.");
 
             return completed;
         }
@@ -39,10 +39,10 @@ namespace GAWUrlChecker
         // Compare given string to saved string.
         // If saved string is empty, indicates that this is the first time
         // has run, so is considered a change.
-        public bool HasDateChanged(string newDate)
+        public async Task<bool> HasDateChanged(string newDate)
         {
             bool hasChanged = false;
-            if (newDate != GetLastChangeDate().Result)
+            if (newDate != await GetLastChangeDate())
             {
                 hasChanged = true;
             }
@@ -53,7 +53,7 @@ namespace GAWUrlChecker
         private async Task<string> GetLastChangeDate()
         {
             string lastMod = await azureFiles.ReadFile(fileName);
-            LoggerFacade.LogInformation($"GetLastChangeDate, finished read, contents = {lastMod}");
+            // LoggerFacade.LogInformation($"GetLastChangeDate, finished read, contents = {lastMod}");
 
             return lastMod;
         }

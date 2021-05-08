@@ -68,7 +68,7 @@ namespace GAWUrlChecker
                     //      Send message that page changed.
                     PageChangeTracker chgTracker = GetTracker(lastChangedFileName);
                     
-                    if (chgTracker.HasDateChanged(lastChangedDate))
+                    if (await chgTracker.HasDateChanged(lastChangedDate))
                     {
                         await chgTracker.SaveChangeDate(lastChangedDate);
                         dateChanged = await SendMessage(lastChangedDate, pageUrl);
