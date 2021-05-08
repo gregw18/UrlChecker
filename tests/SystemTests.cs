@@ -30,7 +30,7 @@ namespace tests
             // the saved date, then run the check - should match, unless
             // website changed in between the two calls.
             string fileName = "goodtest3.txt";
-            string htmlText = TimerTriggerCSharp1.GetPageText(goodUrl);
+            string htmlText = await TimerTriggerCSharp1.GetPageText(goodUrl);
             string savedDate = TimerTriggerCSharp1.GetChangedDate(htmlText);
             await SetAzureShare();
             var result = await azureFileShare.WriteToFile(fileName, savedDate);

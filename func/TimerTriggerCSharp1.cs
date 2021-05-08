@@ -55,7 +55,9 @@ namespace GAWUrlChecker
                 //LogEnvStrings();
 
                 // Read in html for requested page.
-                string pageText = GetPageText(pageUrl);
+                Task<string> pageTask = GetPageText(pageUrl);
+                Task<PageChangeTracker> trackerTask = GetTracker(lastChangedFileName);
+                string pageText = await pageTask;
 
                 if (pageText.Trim().Length > 0)
                 {
@@ -66,7 +68,7 @@ namespace GAWUrlChecker
                     // If different:
                     //      Save new date to check against last time.
                     //      Send message that page changed.
-                    PageChangeTracker chgTracker = await GetTracker(lastChangedFileName);
+                    PageChangeTracker chgTracker = await trackerTask;
                     
                     if (await chgTracker.HasDateChanged(lastChangedDate))
                     {
@@ -90,18 +92,11 @@ namespace GAWUrlChecker
         }
 
         // Return html from requested page.
-        public static string GetPageText(string url)
+        public static async Task<string> GetPageText(string url)
         {
             LoggerFacade.LogInformation("Starting GetPageText.");
-            WebRequest request = WebRequest.Create(url);
-            WebResponse response = request.GetResponse();
-            Stream data = response.GetResponseStream();
-            string htmlResponse = "";
-            using (StreamReader sr = new StreamReader(data))
-            {
-                htmlResponse = sr.ReadToEnd();
-            }
-            // LoggerFacade.LogInformation($"response={htmlResponse}");
+            var uri = new Uri (url);
+            string htmlResponse = await new WebClient().DownloadStringTaskAsync(uri);
             LoggerFacade.LogInformation("Finished GetPageText.");
 
             return htmlResponse;
