@@ -30,13 +30,13 @@ namespace tests
             // the saved date, then run the check - should match, unless
             // website changed in between the two calls.
             string fileName = "goodtest3.txt";
-            string htmlText = await UrlChecker.GetPageText(goodUrl);
-            string savedDate = UrlChecker.GetChangedDate(htmlText);
+            string htmlText = await UrlChecker.GetPageFullText(goodUrl);
+            string savedDate = UrlChecker.GetTargetTextFromPage(htmlText);
             await SetAzureShare();
             var result = await azureFileShare.WriteToFile(fileName, savedDate);
             if (result)
             { 
-                bool checkResult = await UrlChecker.DidPageChange(goodUrl, fileName);
+                bool checkResult = await UrlChecker.CheckUrls(goodUrl, fileName);
                 Assert.False(checkResult);
             }
             else
@@ -57,7 +57,7 @@ namespace tests
             var result = await azureFileShare.WriteToFile(fileName, savedDate);
             if (result)
             { 
-                bool checkResult = await UrlChecker.DidPageChange(goodUrl, fileName);
+                bool checkResult = await UrlChecker.CheckUrls(goodUrl, fileName);
                 Assert.True(checkResult);
             }
             else
@@ -79,7 +79,7 @@ namespace tests
             var result = await azureFileShare.WriteToFile(fileName, savedDate);
             if (result)
             { 
-                Func<Task> act = () => UrlChecker.DidPageChange(badUrl, fileName);
+                Func<Task> act = () => UrlChecker.CheckUrls(badUrl, fileName);
                 await Assert.ThrowsAsync<ArgumentException>(act);
             }
             else

@@ -36,7 +36,7 @@ namespace GAWUrlChecker
 
                 string url = ConfigValues.GetValue("webSiteUrl");
                 string fileName = ConfigValues.GetValue("lastChangedFileName");
-                await DidPageChange(url, fileName);
+                await CheckUrls(url, fileName);
                 LoggerFacade.LogInformation("Finished Run.");
             }
             catch (Exception ex)
@@ -45,24 +45,24 @@ namespace GAWUrlChecker
             }
         }
 
-        public static async Task<bool> DidPageChange(string pageUrl,
+        public static async Task<bool> CheckUrls(string pageUrl,
                                                     string lastChangedFileName)
         {
             bool dateChanged = false;
             try
             {
-                LoggerFacade.LogInformation("Starting CheckIfPageChanged.");
+                LoggerFacade.LogInformation("Starting CheckUrls.");
                 //LogEnvStrings();
 
                 // Read in html for requested page.
-                Task<string> pageTask = GetPageText(pageUrl);
-                Task<PageChangeTracker> trackerTask = GetTracker(lastChangedFileName);
+                Task<string> pageTask = GetPageFullText(pageUrl);
+                Task<PageChangeTracker> trackerTask = GetPageTracker(lastChangedFileName);
                 string pageText = await pageTask;
 
                 if (pageText.Trim().Length > 0)
                 {
                     // Parse out last changed date.
-                    string lastChangedDate = GetChangedDate(pageText);
+                    string currentTargetText = GetTargetTextFromPage(pageText);
                     
                     // Compare to date from the last time we checked the page.
                     // If different:
@@ -70,27 +70,27 @@ namespace GAWUrlChecker
                     //      Send message that page changed.
                     PageChangeTracker chgTracker = await trackerTask;
                     
-                    if (await chgTracker.HasTextChanged(lastChangedDate))
+                    if (await chgTracker.HasTextChanged(currentTargetText))
                     {
                         // Note that could send the message but not save the change,
                         // which would result in a second "changed" message the next day,
                         // even though there was no change. However, this is better than
                         // not sending a message, for my use case.
-                        Task<bool> saveTask = chgTracker.SaveNewText(lastChangedDate);
-                        Task<bool> msgTask = SendMessage(lastChangedDate, pageUrl);
+                        Task<bool> saveTask = chgTracker.SaveNewText(currentTargetText);
+                        Task<bool> msgTask = SendMessage(currentTargetText, pageUrl);
                         await Task.WhenAll(saveTask, msgTask);
                         dateChanged = await msgTask;
                     }
-                    LoggerFacade.LogInformation($"Finished CheckIfPageChanged, dateChanged={dateChanged}.");
+                    LoggerFacade.LogInformation($"Finished CheckUrls, dateChanged={dateChanged}.");
                 }
                 else
                 {
-                    LoggerFacade.LogError($"CheckIfPageChanged, unable to read from web page: {pageUrl}");
+                    LoggerFacade.LogError($"CheckUrls, unable to read from web page: {pageUrl}");
                 }
             }
             catch (Exception ex)
             {
-                LoggerFacade.LogError(ex, "Exception in UrlChecker.CheckIfPageChanged.");
+                LoggerFacade.LogError(ex, "Exception in UrlChecker.CheckUrls.");
                 throw;
             }
 
@@ -98,12 +98,12 @@ namespace GAWUrlChecker
         }
 
         // Return html from requested page.
-        public static async Task<string> GetPageText(string url)
+        public static async Task<string> GetPageFullText(string url)
         {
-            LoggerFacade.LogInformation("Starting GetPageText.");
+            LoggerFacade.LogInformation("Starting GetPageFullText.");
             var uri = new Uri (url);
             string htmlResponse = await new WebClient().DownloadStringTaskAsync(uri);
-            LoggerFacade.LogInformation("Finished GetPageText.");
+            LoggerFacade.LogInformation("Finished GetPageFullText.");
 
             return htmlResponse;
         }
@@ -112,7 +112,7 @@ namespace GAWUrlChecker
         // For the page that I am interested in, there is a dateModified property
         // near the bottom of the page that appears to be updated whenever the page's
         // content is updated.
-        public static string GetChangedDate(string htmlResponse)
+        public static string GetTargetTextFromPage(string htmlResponse)
         {
             // Searching from end of string because target is at bottom of page.
             string target = ConfigValues.GetValue("targetText");
@@ -135,7 +135,7 @@ namespace GAWUrlChecker
         }
 
         // Create and return the PageChangeTracker.
-        private static async Task<PageChangeTracker> GetTracker(string fileName)
+        private static async Task<PageChangeTracker> GetPageTracker(string fileName)
         {
             string shareName = ConfigValues.GetValue("shareName");
             string dirName = ConfigValues.GetValue("dirName");
