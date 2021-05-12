@@ -12,7 +12,7 @@ namespace tests
     public class SystemTests : IClassFixture<ConfigFixture>
     {
         ConfigFixture fixture;
-        AzureFileShare azureFileShare;
+        AzureFileShareClient azureFileShare;
         string goodUrl;
 
         public SystemTests(ConfigFixture fixture)
@@ -93,7 +93,7 @@ namespace tests
         {
             string shareName = ConfigValues.GetValue("shareName");
             string dirName = ConfigValues.GetValue("dirName");
-            azureFileShare = await AzureFileShare.CreateAsync(shareName, dirName);
+            azureFileShare = await AzureFileShareClient.CreateAsync(shareName, dirName);
         }
 
     }

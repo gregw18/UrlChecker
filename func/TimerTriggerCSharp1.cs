@@ -139,7 +139,7 @@ namespace GAWUrlChecker
         {
             string shareName = ConfigValues.GetValue("shareName");
             string dirName = ConfigValues.GetValue("dirName");
-            var azureFiles = await AzureFileShare.CreateAsync(shareName, dirName);
+            var azureFiles = await AzureFileShareClient.CreateAsync(shareName, dirName);
             var chgTracker = new PageChangeTracker(fileName, azureFiles);
             
             return chgTracker;

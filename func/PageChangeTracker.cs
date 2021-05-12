@@ -8,10 +8,10 @@ namespace GAWUrlChecker
     // that date in an Azure file share.
     public class PageChangeTracker
     {
-        private AzureFileShare azureFiles;
+        private AzureFileShareClient azureFiles;
         private string fileName;
 
-        public PageChangeTracker(string fileName, AzureFileShare myShare)
+        public PageChangeTracker(string fileName, AzureFileShareClient myShare)
         {
             try
             {

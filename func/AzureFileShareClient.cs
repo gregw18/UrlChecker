@@ -10,20 +10,20 @@ namespace GAWUrlChecker
 {
     // Provide access to given share and directory. Must call constructor before
     // any other methods.
-    public class AzureFileShare
+    public class AzureFileShareClient
     {
 
         private static ShareClient share;
         private static ShareDirectoryClient directory;
         private static bool isInitialized = false;
 
-        public static Task<AzureFileShare> CreateAsync(string shareName, string dirName)
+        public static Task<AzureFileShareClient> CreateAsync(string shareName, string dirName)
         {
-            var newObj = new AzureFileShare();
+            var newObj = new AzureFileShareClient();
             return newObj.InitializeAsync(shareName, dirName);
         }
 
-        private async Task<AzureFileShare> InitializeAsync(string shareName, string dirName)
+        private async Task<AzureFileShareClient> InitializeAsync(string shareName, string dirName)
         {
             string connectionString = System.Environment.GetEnvironmentVariable("AzureWebJobsStorage");
             LoggerFacade.LogInformation($"connectionString={connectionString}");
