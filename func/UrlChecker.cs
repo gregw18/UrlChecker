@@ -70,13 +70,13 @@ namespace GAWUrlChecker
                     //      Send message that page changed.
                     PageChangeTracker chgTracker = await trackerTask;
                     
-                    if (await chgTracker.HasDateChanged(lastChangedDate))
+                    if (await chgTracker.HasTextChanged(lastChangedDate))
                     {
                         // Note that could send the message but not save the change,
                         // which would result in a second "changed" message the next day,
                         // even though there was no change. However, this is better than
                         // not sending a message, for my use case.
-                        Task<bool> saveTask = chgTracker.SaveChangeDate(lastChangedDate);
+                        Task<bool> saveTask = chgTracker.SaveNewText(lastChangedDate);
                         Task<bool> msgTask = SendMessage(lastChangedDate, pageUrl);
                         await Task.WhenAll(saveTask, msgTask);
                         dateChanged = await msgTask;
