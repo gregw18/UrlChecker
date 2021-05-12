@@ -20,11 +20,11 @@ using Microsoft.Extensions.Logging;
 
 namespace GAWUrlChecker
 {
-    public static class TimerTriggerCSharp1
+    public static class UrlChecker
     {
         // Timer runs at 5am and 11am every day, eastern standard
         // (Cron expression uses UTC.)
-        [FunctionName("TimerTriggerCSharp1")]
+        [FunctionName("UrlChecker")]
         public static async Task Run([TimerTrigger("0 0 10,16 * * *")]TimerInfo myTimer, 
                                 ILogger log)
         {
@@ -41,7 +41,7 @@ namespace GAWUrlChecker
             }
             catch (Exception ex)
             {
-                LoggerFacade.LogError(ex, "Exception in TimerTriggerCSharp1.Run.");
+                LoggerFacade.LogError(ex, "Exception in UrlChecker.Run.");
             }
         }
 
@@ -90,7 +90,7 @@ namespace GAWUrlChecker
             }
             catch (Exception ex)
             {
-                LoggerFacade.LogError(ex, "Exception in TimerTriggerCSharp1.CheckIfPageChanged.");
+                LoggerFacade.LogError(ex, "Exception in UrlChecker.CheckIfPageChanged.");
                 throw;
             }
 

@@ -76,7 +76,7 @@ public class ConfigFixture
 
         LoggerFacade.LogInformation("Starting ConfigFixture.");
         ReadSettingsIntoEnv();
-        TimerTriggerCSharp1.LogEnvStrings();
+        UrlChecker.LogEnvStrings();
         ConfigValues.Initialize();
     }
 
