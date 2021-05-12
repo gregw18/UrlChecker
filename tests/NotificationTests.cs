@@ -25,7 +25,7 @@ namespace tests
         [Fact]
         public async void SendMsg_Succeeds()
         {
-            Notification sns = new Notification();
+            NotificationClient sns = new NotificationClient();
             string topic = ConfigValues.GetValue("snsTopic");
             LoggerFacade.LogInformation($"topic={topic}");
             string testMsg = "Message from SendMsg_Succeeds unit test.";
@@ -36,7 +36,7 @@ namespace tests
         [Fact]
         public async void ArnSearchMatch_Succeeds()
         {
-            Notification sns = new Notification();
+            NotificationClient sns = new NotificationClient();
             string topic = ConfigValues.GetValue("snsTopic");
             string fullArn = await sns.GetTopicArn(topic);
             
@@ -46,7 +46,7 @@ namespace tests
         [Fact]
         public async void ArnSearchTrailingPartialMatch_Fails()
         {
-            Notification sns = new Notification();
+            NotificationClient sns = new NotificationClient();
             string topic = ConfigValues.GetValue("snsTopic").Substring(10);
             string fullArn = await sns.GetTopicArn(topic);
             
@@ -56,7 +56,7 @@ namespace tests
         [Fact]
         public async void ArnSearchLeadingPartialMatch_Fails()
         {
-            Notification sns = new Notification();
+            NotificationClient sns = new NotificationClient();
             string topic = ConfigValues.GetValue("snsTopic").Substring(0, 20);
             string fullArn = await sns.GetTopicArn(topic);
             

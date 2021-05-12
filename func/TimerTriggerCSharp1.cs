@@ -165,7 +165,7 @@ namespace GAWUrlChecker
             bool sentOk = false;
             try
             {
-                Notification sns = new Notification();
+                NotificationClient sns = new NotificationClient();
                 string topic = ConfigValues.GetValue("snsTopic");
                 LoggerFacade.LogInformation($"topic={topic}");
                 string msg = $"The web page {url} changed, " + 
