@@ -54,39 +54,27 @@ namespace GAWUrlChecker
                 LoggerFacade.LogInformation("Starting CheckUrls.");
                 //LogEnvStrings();
 
-                // Read in html for requested page.
-                Task<string> pageTask = GetPageFullText(pageUrl);
+                // Read in desired text from requested page.
+                Task<string> pageTask = GetPageTargetText(pageUrl);
                 Task<PageChangeTracker> trackerTask = GetPageTracker(lastChangedFileName);
-                string pageText = await pageTask;
-
-                if (pageText.Trim().Length > 0)
+                // Compare to date from the last time we checked the page.
+                // If different:
+                //      Save new date to check against last time.
+                //      Send message that page changed.
+                PageChangeTracker chgTracker = await trackerTask;
+                string currentTargetText = await pageTask;
+                if (await chgTracker.HasTextChanged(currentTargetText))
                 {
-                    // Parse out last changed date.
-                    string currentTargetText = GetTargetTextFromPage(pageText);
-                    
-                    // Compare to date from the last time we checked the page.
-                    // If different:
-                    //      Save new date to check against last time.
-                    //      Send message that page changed.
-                    PageChangeTracker chgTracker = await trackerTask;
-                    
-                    if (await chgTracker.HasTextChanged(currentTargetText))
-                    {
-                        // Note that could send the message but not save the change,
-                        // which would result in a second "changed" message the next day,
-                        // even though there was no change. However, this is better than
-                        // not sending a message, for my use case.
-                        Task<bool> saveTask = chgTracker.SaveNewText(currentTargetText);
-                        Task<bool> msgTask = SendMessage(currentTargetText, pageUrl);
-                        await Task.WhenAll(saveTask, msgTask);
-                        dateChanged = await msgTask;
-                    }
-                    LoggerFacade.LogInformation($"Finished CheckUrls, dateChanged={dateChanged}.");
+                    // Note that could send the message but not save the change,
+                    // which would result in a second "changed" message the next day,
+                    // even though there was no change. However, this is better than
+                    // not sending a message, for my use case.
+                    Task<bool> saveTask = chgTracker.SaveNewText(currentTargetText);
+                    Task<bool> msgTask = SendMessage(currentTargetText, pageUrl);
+                    await Task.WhenAll(saveTask, msgTask);
+                    dateChanged = await msgTask;
                 }
-                else
-                {
-                    LoggerFacade.LogError($"CheckUrls, unable to read from web page: {pageUrl}");
-                }
+                LoggerFacade.LogInformation($"Finished CheckUrls, dateChanged={dateChanged}.");
             }
             catch (Exception ex)
             {
@@ -95,6 +83,26 @@ namespace GAWUrlChecker
             }
 
             return dateChanged;
+        }
+
+        private static async Task<string> GetPageTargetText(string pageUrl)
+        {
+            string targetText = "";
+            LoggerFacade.LogInformation("Starting GetPageTargetText.");
+
+            // Read in html for requested page.
+            string pageText = await GetPageFullText(pageUrl);
+            if (pageText.Trim().Length > 0)
+            {
+                // Parse out last changed date.
+                targetText = GetTargetTextFromPage(pageText);
+            }
+            else
+            {
+                LoggerFacade.LogError($"GetPageTargetText, unable to read from web page: {pageUrl}");
+            }
+
+            return targetText;
         }
 
         // Return html from requested page.
