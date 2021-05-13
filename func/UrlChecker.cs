@@ -48,14 +48,19 @@ namespace GAWUrlChecker
         public static async Task<bool> CheckUrls(string pageUrl,
                                                     string lastChangedFileName)
         {
-            bool dateChanged = false;
+            bool pageChanged = false;
             try
             {
                 LoggerFacade.LogInformation("Starting CheckUrls.");
                 //LogEnvStrings();
 
                 // Read in desired text from requested page.
-                Task<string> pageTask = GetPageTargetText(pageUrl);
+                TargetTextData targetData = new TargetTextData(ConfigValues.GetValue("targetText"),
+                                                                Int32.Parse(ConfigValues.GetValue("changingTextOffset")),
+                                                                Int32.Parse(ConfigValues.GetValue("changingTextLength")));
+                PageTextRetriever myRetriever = new PageTextRetriever();
+                Task<string> pageTask = myRetriever.GetTargetText(pageUrl, targetData);
+
                 Task<PageChangeTracker> trackerTask = GetPageTracker(lastChangedFileName);
                 // Compare to date from the last time we checked the page.
                 // If different:
@@ -72,9 +77,9 @@ namespace GAWUrlChecker
                     Task<bool> saveTask = chgTracker.SaveNewText(currentTargetText);
                     Task<bool> msgTask = SendMessage(currentTargetText, pageUrl);
                     await Task.WhenAll(saveTask, msgTask);
-                    dateChanged = await msgTask;
+                    pageChanged = await msgTask;
                 }
-                LoggerFacade.LogInformation($"Finished CheckUrls, dateChanged={dateChanged}.");
+                LoggerFacade.LogInformation($"Finished CheckUrls, pageChanged={pageChanged}.");
             }
             catch (Exception ex)
             {
@@ -82,64 +87,7 @@ namespace GAWUrlChecker
                 throw;
             }
 
-            return dateChanged;
-        }
-
-        private static async Task<string> GetPageTargetText(string pageUrl)
-        {
-            string targetText = "";
-            LoggerFacade.LogInformation("Starting GetPageTargetText.");
-
-            // Read in html for requested page.
-            string pageText = await GetPageFullText(pageUrl);
-            if (pageText.Trim().Length > 0)
-            {
-                // Parse out last changed date.
-                targetText = GetTargetTextFromPage(pageText);
-            }
-            else
-            {
-                LoggerFacade.LogError($"GetPageTargetText, unable to read from web page: {pageUrl}");
-            }
-
-            return targetText;
-        }
-
-        // Return html from requested page.
-        public static async Task<string> GetPageFullText(string url)
-        {
-            LoggerFacade.LogInformation("Starting GetPageFullText.");
-            var uri = new Uri (url);
-            string htmlResponse = await new WebClient().DownloadStringTaskAsync(uri);
-            LoggerFacade.LogInformation("Finished GetPageFullText.");
-
-            return htmlResponse;
-        }
-
-        // Parse out the last changed date from the given text.
-        // For the page that I am interested in, there is a dateModified property
-        // near the bottom of the page that appears to be updated whenever the page's
-        // content is updated.
-        public static string GetTargetTextFromPage(string htmlResponse)
-        {
-            // Searching from end of string because target is at bottom of page.
-            string target = ConfigValues.GetValue("targetText");
-            int offset = Int32.Parse(ConfigValues.GetValue("changingTextOffset"));
-            int length = Int32.Parse(ConfigValues.GetValue("changingTextLength"));
-            int startLoc = htmlResponse.LastIndexOf(target);
-            LoggerFacade.LogInformation($"GetChangedDate, startLoc={startLoc}");
-            string lastModified = "";
-            if (startLoc > -1)
-            {
-                lastModified = htmlResponse.Substring(startLoc + target.Length + offset, length);
-                LoggerFacade.LogInformation($"GetChangedDate, dateModified={lastModified}");
-            }
-            else
-            {
-                LoggerFacade.LogInformation("GetChangedDate, about to throw exception.");
-                throw new ArgumentException($"Unable to locate target text: {target} in provided text: {htmlResponse}");
-            }
-            return lastModified;
+            return pageChanged;
         }
 
         // Create and return the PageChangeTracker.
@@ -151,20 +99,6 @@ namespace GAWUrlChecker
             var chgTracker = new PageChangeTracker(fileName, azureFiles);
             
             return chgTracker;
-        }
-
-        // Write all environment variables to the log.
-        // Not a good idea if worried about others seeing these!
-        public static void LogEnvStrings()
-        {
-            var envStrings = System.Environment.GetEnvironmentVariables();
-            var sortedEnv = new SortedList(envStrings);
-            LoggerFacade.LogInformation("\nEnvironment variables");
-            foreach (string s in sortedEnv.Keys)
-            {
-                LoggerFacade.LogInformation( $"key: {s}, value:{envStrings[s]}");
-            }
-            LoggerFacade.LogInformation("--------\n");
         }
 
         // Use AWS SNS to send an email to the configured topic.
@@ -188,11 +122,18 @@ namespace GAWUrlChecker
             return sentOk;
         }
 
-        // Helper to write full text from target page to a text file, for debugging.
-        private static async Task SavePageText(string text)
+        // Write all environment variables to the log.
+        // Not a good idea if worried about others seeing these!
+        public static void LogEnvStrings()
         {
-            await File.WriteAllTextAsync("samplePageText2.txt", text);
+            var envStrings = System.Environment.GetEnvironmentVariables();
+            var sortedEnv = new SortedList(envStrings);
+            LoggerFacade.LogInformation("\nEnvironment variables");
+            foreach (string s in sortedEnv.Keys)
+            {
+                LoggerFacade.LogInformation( $"key: {s}, value:{envStrings[s]}");
+            }
+            LoggerFacade.LogInformation("--------\n");
         }
-
     }
 }
