@@ -30,8 +30,12 @@ namespace tests
             // the saved date, then run the check - should match, unless
             // website changed in between the two calls.
             string fileName = "goodtest3.txt";
-            string htmlText = await UrlChecker.GetPageFullText(goodUrl);
-            string savedDate = UrlChecker.GetTargetTextFromPage(htmlText);
+            TargetTextData targetData = new TargetTextData(ConfigValues.GetValue("targetText"),
+                                                            Int32.Parse(ConfigValues.GetValue("changingTextOffset")),
+                                                            Int32.Parse(ConfigValues.GetValue("changingTextLength")));
+            PageTextRetriever myRetriever = new PageTextRetriever();
+            string savedDate = await myRetriever.GetTargetText(goodUrl, targetData);
+
             await SetAzureShare();
             var result = await azureFileShare.WriteToFile(fileName, savedDate);
             if (result)
