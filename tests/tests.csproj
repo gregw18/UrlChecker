@@ -22,5 +22,5 @@
   <ItemGroup>
     <ProjectReference Include="..\func\UrlChecker.csproj" />
   </ItemGroup>
-
+  
 </Project>

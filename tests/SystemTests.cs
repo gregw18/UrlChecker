@@ -13,12 +13,10 @@ namespace tests
     {
         ConfigFixture fixture;
         AzureFileShareClient azureFileShare;
-        string goodUrl;
 
         public SystemTests(ConfigFixture fixture)
         {
             this.fixture = fixture;
-            goodUrl = ConfigValues.GetValue("webSiteUrl");
             string shareName = ConfigValues.GetValue("shareName");
             string dirName = ConfigValues.GetValue("dirName");
         }
@@ -30,17 +28,15 @@ namespace tests
             // the saved date, then run the check - should match, unless
             // website changed in between the two calls.
             string fileName = "goodtest3.txt";
-            TargetTextData targetData = new TargetTextData(ConfigValues.GetValue("targetText"),
-                                                            Int32.Parse(ConfigValues.GetValue("changingTextOffset")),
-                                                            Int32.Parse(ConfigValues.GetValue("changingTextLength")));
+            var targetData = ConfigValues.GetTarget(0);
             PageTextRetriever myRetriever = new PageTextRetriever();
-            string savedDate = await myRetriever.GetTargetText(goodUrl, targetData);
+            string savedDate = await myRetriever.GetTargetText(targetData);
 
             await SetAzureShare();
             var result = await azureFileShare.WriteToFile(fileName, savedDate);
             if (result)
             { 
-                bool checkResult = await UrlChecker.CheckUrls(goodUrl, fileName);
+                bool checkResult = await UrlChecker.CheckUrls(fileName);
                 Assert.False(checkResult);
             }
             else
@@ -61,7 +57,7 @@ namespace tests
             var result = await azureFileShare.WriteToFile(fileName, savedDate);
             if (result)
             { 
-                bool checkResult = await UrlChecker.CheckUrls(goodUrl, fileName);
+                bool checkResult = await UrlChecker.CheckUrls(fileName);
                 Assert.True(checkResult);
             }
             else
@@ -79,17 +75,22 @@ namespace tests
             string fileName = "badtest3.txt";
             string badUrl = "https://www.google.com/";
             string savedDate = "BadSaveDate";
+            TargetTextData target = ConfigValues.GetTarget(0);
+            string goodUrl = target.targetUrl;
+            target.targetUrl = badUrl;
             await SetAzureShare();
             var result = await azureFileShare.WriteToFile(fileName, savedDate);
             if (result)
             { 
-                Func<Task> act = () => UrlChecker.CheckUrls(badUrl, fileName);
+                Func<Task> act = () => UrlChecker.CheckUrls(fileName);
                 await Assert.ThrowsAsync<ArgumentException>(act);
             }
             else
             {
                 Assert.True(false, $"Failed to save expected date to file: {fileName}");
             }
+            // Restore the good url for the next test.
+            target.targetUrl = goodUrl;
             await azureFileShare.DeleteFile(fileName);
         }
 

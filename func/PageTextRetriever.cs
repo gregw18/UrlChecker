@@ -67,7 +67,8 @@ namespace GAWUrlChecker
             else
             {
                 LoggerFacade.LogInformation("GetTargetTextFromPage, about to throw exception.");
-                throw new ArgumentException($"Unable to locate target text: {targetData.targetLabel} in provided text: {htmlResponse}");
+                throw new ArgumentException($"Unable to locate target text: '{targetData.targetLabel}' " + 
+                                    $"in url {targetData.targetUrl}, in retrieved text: {htmlResponse}");
             }
             return targetText;
         }
