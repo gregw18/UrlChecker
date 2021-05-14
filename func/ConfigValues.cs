@@ -14,6 +14,7 @@ namespace GAWUrlChecker
         private static bool isInitialized = false;
         private static readonly object _locker = new object();
         private static Dictionary<string, string> config;
+        private static List<TargetTextData> targets;
 
         // Read in the requested variables from environment strings or key vault,
         // so they're ready to be accessed, and can be accessed the same regardless
@@ -29,6 +30,9 @@ namespace GAWUrlChecker
                     // Treating vaultName specially because it has to be available before
                     // can read a secret.
                     ConfigRetriever cfgRetriever = new ConfigRetriever();
+                    ReadGlobalValues(cfgRetriever);
+                    ReadTargets(cfgRetriever);
+                    /*
                     string vaultName = "vaultName";
                     config.Add(vaultName, cfgRetriever.ReadValue(vaultName));
 
@@ -60,6 +64,7 @@ namespace GAWUrlChecker
                             config.Add(kvp.Key, cfgRetriever.ReadValue(kvp.Key));
                         }
                     }
+                    */
                     isInitialized = true;
                     // LogValues();
                 }
@@ -97,6 +102,76 @@ namespace GAWUrlChecker
             // LoggerFacade.LogInformation($"for key: {key}, found value: {value}");
 
             return value;
+        }
+
+        public static int GetNumberOfTargets()
+        {
+            return targets.Count;
+        }
+
+        // If request a valid item, return it, otherwise return null;
+        public static TargetTextData GetTarget(int index)
+        {
+            if (index > -1 && index < targets.Count)
+                return targets[index];
+            else return null;
+        }
+
+        // Read in config values other than targets.
+        private static void ReadGlobalValues(ConfigRetriever cfgRetriever)
+        {
+            // Treating vaultName specially because it has to be available before
+            // can read a secret.
+            string vaultName = "vaultName";
+            config.Add(vaultName, cfgRetriever.ReadValue(vaultName));
+
+            // Dictionary of config item names and whether each is a secret (i.e. is
+            // stored in the key vault, rather than an environment variable.)
+            Dictionary<string, bool> isSecret = new Dictionary<string, bool>();
+            isSecret.Add("secret1", true);
+            isSecret.Add("awsAccessKeyId", true);
+            isSecret.Add("awsSecretAccessKey", true);
+            isSecret.Add("shareName", false);
+            isSecret.Add("dirName", false);
+            isSecret.Add("lastChangedFileName", false);
+            isSecret.Add("snsTopic", false);
+            isSecret.Add("awsRegionName", false);
+
+            // Read each item in and add name/value to the config dictionary.
+            foreach (KeyValuePair<string, bool> kvp in isSecret)
+            {
+                if (kvp.Value)
+                {
+                    config.Add(kvp.Key, cfgRetriever.ReadSecret(config[vaultName], kvp.Key));
+                }
+                else
+                {
+                    config.Add(kvp.Key, cfgRetriever.ReadValue(kvp.Key));
+                }
+            }
+        }
+
+        // Read in values for all targets. Keep reading until find an entry
+        // that is empty.
+        private static void ReadTargets(ConfigRetriever cfgRetriever)
+        {
+            targets = new List<TargetTextData>();
+            int i = 1;
+            while (true)
+            {
+                string thisUrl = cfgRetriever.ReadValue("webSiteUrl" + i.ToString()).Trim();
+                if (thisUrl.Length > 0)
+                {
+                    string thisLabel = cfgRetriever.ReadValue("targetText" + i.ToString()).Trim();
+                    int thisOffset = Int32.Parse(cfgRetriever.ReadValue("targetTextOffset" + i.ToString()).Trim());
+                    int thisLength = Int32.Parse(cfgRetriever.ReadValue("targetTextLength" + i.ToString()).Trim());
+                    var thisTarget = new TargetTextData(thisUrl, thisLabel, thisOffset, thisLength);
+                    targets.Add(thisTarget);
+                }
+                else break;
+                i++;
+            }
+            LoggerFacade.LogInformation($"ReadTargets found {i-1} targets.");
         }
 
         private static void LogValues()

@@ -34,9 +34,9 @@ namespace GAWUrlChecker
                 LoggerFacade.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
                 // LogEnvStrings();
 
-                string url = ConfigValues.GetValue("webSiteUrl");
+                // string url = ConfigValues.GetValue("webSiteUrl");
                 string fileName = ConfigValues.GetValue("lastChangedFileName");
-                await CheckUrls(url, fileName);
+                await CheckUrls(fileName);
                 LoggerFacade.LogInformation("Finished Run.");
             }
             catch (Exception ex)
@@ -45,8 +45,7 @@ namespace GAWUrlChecker
             }
         }
 
-        public static async Task<bool> CheckUrls(string pageUrl,
-                                                    string lastChangedFileName)
+        public static async Task<bool> CheckUrls(string lastChangedFileName)
         {
             bool pageChanged = false;
             try
@@ -55,11 +54,12 @@ namespace GAWUrlChecker
                 //LogEnvStrings();
 
                 // Read in desired text from requested page.
-                TargetTextData targetData = new TargetTextData(ConfigValues.GetValue("targetText"),
-                                                                Int32.Parse(ConfigValues.GetValue("changingTextOffset")),
-                                                                Int32.Parse(ConfigValues.GetValue("changingTextLength")));
+                //TargetTextData targetData = new TargetTextData(ConfigValues.GetValue("targetText"),
+                //                                                Int32.Parse(ConfigValues.GetValue("changingTextOffset")),
+                //                                                Int32.Parse(ConfigValues.GetValue("changingTextLength")));
+                TargetTextData target1 = ConfigValues.GetTarget(0);
                 PageTextRetriever myRetriever = new PageTextRetriever();
-                Task<string> pageTask = myRetriever.GetTargetText(pageUrl, targetData);
+                Task<string> pageTask = myRetriever.GetTargetText(target1);
 
                 Task<PageChangeTracker> trackerTask = GetPageTracker(lastChangedFileName);
                 // Compare to date from the last time we checked the page.
@@ -75,7 +75,7 @@ namespace GAWUrlChecker
                     // even though there was no change. However, this is better than
                     // not sending a message, for my use case.
                     Task<bool> saveTask = chgTracker.SaveNewText(currentTargetText);
-                    Task<bool> msgTask = SendMessage(currentTargetText, pageUrl);
+                    Task<bool> msgTask = SendMessage(currentTargetText, target1.targetUrl);
                     await Task.WhenAll(saveTask, msgTask);
                     pageChanged = await msgTask;
                 }

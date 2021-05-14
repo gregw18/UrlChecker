@@ -17,13 +17,13 @@ namespace GAWUrlChecker
         // (Cron expression uses UTC.)
 
 
-        public async Task<string> GetTargetText(string pageUrl, TargetTextData targetData)
+        public async Task<string> GetTargetText(TargetTextData targetData)
         {
             string targetText = "";
             LoggerFacade.LogInformation("Starting GetTargetText.");
 
             // Read in html for requested page.
-            string pageText = await GetPageFullText(pageUrl);
+            string pageText = await GetPageFullText(targetData.targetUrl);
             if (pageText.Trim().Length > 0)
             {
                 // Parse out last changed date.
@@ -31,7 +31,7 @@ namespace GAWUrlChecker
             }
             else
             {
-                LoggerFacade.LogError($"GetTargetText, unable to read from web page: {pageUrl}");
+                LoggerFacade.LogError($"GetTargetText, unable to read from web page: {targetData.targetUrl}");
             }
 
             return targetText;
@@ -83,12 +83,14 @@ namespace GAWUrlChecker
 
     public class TargetTextData
     {
+        public string targetUrl;        // Url to read.
         public string targetLabel;      // "Marker" text that doesn't change, to locate target text.
         public int targetOffset;        // Offset from end of label to start of target text.
         public int targetLength;        // Length of target text.
 
-        public TargetTextData(string label, int offset, int length)
+        public TargetTextData(string url, string label, int offset, int length)
         {
+            targetUrl = url;
             targetLabel = label;
             targetOffset = offset;
             targetLength = length;
