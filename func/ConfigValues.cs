@@ -156,7 +156,7 @@ namespace GAWUrlChecker
         private static void ReadTargets(ConfigRetriever cfgRetriever)
         {
             targets = new List<TargetTextData>();
-            int i = 1;
+            int i = 0;
             while (true)
             {
                 string thisUrl = cfgRetriever.ReadValue("webSiteUrl" + i.ToString()).Trim();
@@ -171,7 +171,7 @@ namespace GAWUrlChecker
                 else break;
                 i++;
             }
-            LoggerFacade.LogInformation($"ReadTargets found {i-1} targets.");
+            LoggerFacade.LogInformation($"ReadTargets found {i} targets.");
         }
 
         private static void LogValues()
