@@ -68,17 +68,17 @@ namespace GAWUrlChecker
                 //      Send message that page changed.
                 PageChangeTracker chgTracker = await trackerTask;
                 string currentTargetText = await pageTask;
-                if (await chgTracker.HasTextChanged(currentTargetText))
+                if (chgTracker.HasTextChanged(0, currentTargetText))
                 {
                     // Note that could send the message but not save the change,
                     // which would result in a second "changed" message the next day,
                     // even though there was no change. However, this is better than
                     // not sending a message, for my use case.
-                    Task<bool> saveTask = chgTracker.SaveNewText(currentTargetText);
+                    chgTracker.SetNewText(0, currentTargetText);
                     Task<bool> msgTask = SendMessage(currentTargetText, target1.targetUrl);
-                    await Task.WhenAll(saveTask, msgTask);
                     pageChanged = await msgTask;
                 }
+                await chgTracker.SaveChanges();
                 LoggerFacade.LogInformation($"Finished CheckUrls, pageChanged={pageChanged}.");
             }
             catch (Exception ex)
@@ -96,7 +96,7 @@ namespace GAWUrlChecker
             string shareName = ConfigValues.GetValue("shareName");
             string dirName = ConfigValues.GetValue("dirName");
             var azureFiles = await AzureFileShareClient.CreateAsync(shareName, dirName);
-            var chgTracker = new PageChangeTracker(fileName, azureFiles);
+            var chgTracker = await PageChangeTracker.CreateAsync(fileName, azureFiles);
             
             return chgTracker;
         }

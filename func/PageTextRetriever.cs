@@ -13,10 +13,6 @@ namespace GAWUrlChecker
 {
     public class PageTextRetriever
     {
-        // Timer runs at 5am and 11am every day, eastern standard
-        // (Cron expression uses UTC.)
-
-
         public async Task<string> GetTargetText(TargetTextData targetData)
         {
             string targetText = "";
