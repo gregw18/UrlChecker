@@ -12,7 +12,7 @@ namespace GAWUrlChecker
     //      PreviousValue0=May 31, 2021
     //      PreviousValue1=April 2, 2020
     // Indexes controlled by caller, but assumed to match indexes for TargetTextData.
-    // Reads all values in on startup. Values in memory are updates as necessary
+    // Reads all values in on startup. Values in memory are updated as necessary
     // when processing, then SaveChanges is called at end to write them back
     // to the Azure file share.
     public class PageChangeTracker
@@ -69,22 +69,6 @@ namespace GAWUrlChecker
                 }
             }
         }
-        /*
-        public PageChangeTracker(string fileName, AzureFileShareClient myShare)
-        {
-            try
-            {
-                this.fileName = fileName;
-                azureFiles = myShare;
-                LoggerFacade.LogInformation($"Finished PageChangeTracker ctor");
-            }
-            catch (Exception ex)
-            {
-                LoggerFacade.LogError(ex, "Exception in PageChangeTracker.ctor.");
-            }
-
-        }
-        */
 
         // Update the in-memory value for the given key, if necessary.
         public void SetNewText(int key, string newText)
@@ -119,7 +103,7 @@ namespace GAWUrlChecker
 
             }
             else completed = true;
-            // LoggerFacade.LogInformation($"Finished SaveNewText, result={completed}.");
+            // LoggerFacade.LogInformation($"Finished SaveChanges, result={completed}.");
 
             return completed;
         }

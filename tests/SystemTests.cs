@@ -33,7 +33,9 @@ namespace tests
             string savedDate = await myRetriever.GetTargetText(targetData);
 
             await SetAzureShare();
-            var result = await azureFileShare.WriteToFile(fileName, savedDate);
+            var chgTracker = await PageChangeTracker.CreateAsync(fileName, azureFileShare);
+            chgTracker.SetNewText(0, savedDate);
+            var result = await chgTracker.SaveChanges();
             if (result)
             { 
                 bool checkResult = await UrlChecker.CheckUrls(fileName);

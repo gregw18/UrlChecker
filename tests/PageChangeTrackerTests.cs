@@ -31,7 +31,6 @@ namespace tests
         public async void StoreMismatchedText_NoMatch()
         {
             string fileName = "goodtest2.txt";
-            //PageChangeTracker pageTracker = new PageChangeTracker(fileName, azureFileShare);
             string savedDate = "Jan 2, 2019";
             string newDate = "Jan 13, 2019";
             await TestFileMatch(fileName, savedDate, newDate, true);
@@ -42,8 +41,8 @@ namespace tests
         {
             string fileName = "badtest1.txt";
             await SetAzureShare();
-            PageChangeTracker pageTracker = new PageChangeTracker(fileName, azureFileShare);
-            Assert.True(await pageTracker.HasTextChanged("Jan 3, 2019"));
+            PageChangeTracker pageTracker = await PageChangeTracker.CreateAsync(fileName, azureFileShare);
+            Assert.True(pageTracker.HasTextChanged(0, "Jan 3, 2019"));
 
             await azureFileShare.DeleteFile(fileName);
         }
@@ -54,12 +53,13 @@ namespace tests
                                         bool expectedResult)
         {
             await SetAzureShare();
-            PageChangeTracker pageTracker = new PageChangeTracker(fileName, azureFileShare);
-            var wroteOk = await pageTracker.SaveNewText(savedText);
+            PageChangeTracker pageTracker = await PageChangeTracker.CreateAsync(fileName, azureFileShare);
+            pageTracker.SetNewText(0, savedText);
+            var wroteOk = await pageTracker.SaveChanges();
 
             if (wroteOk)
             {
-                Assert.Equal(expectedResult, await pageTracker.HasTextChanged(newText));
+                Assert.Equal(expectedResult, pageTracker.HasTextChanged(0, newText));
             }
             else
             {
