@@ -18,22 +18,28 @@ namespace tests
             this.fixture = fixture;
         }
 
-        [Fact]
-        public async void StoreMatchedText_Matches()
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        public async void StoreMatchedText_Matches(int index)
         {
             string fileName = "goodtest.txt";
             string savedDate = "Jan 23, 2019";
             string newDate = savedDate;
-            await TestFileMatch(fileName, savedDate, newDate, false);
+            await TestFileMatch(fileName, index, savedDate, newDate, false);
         }
 
-        [Fact]
-        public async void StoreMismatchedText_NoMatch()
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(4)]
+        public async void StoreMismatchedText_NoMatch(int index)
         {
             string fileName = "goodtest2.txt";
             string savedDate = "Jan 2, 2019";
             string newDate = "Jan 13, 2019";
-            await TestFileMatch(fileName, savedDate, newDate, true);
+            await TestFileMatch(fileName, index, savedDate, newDate, true);
         }
 
         [Fact]
@@ -48,18 +54,19 @@ namespace tests
         }
 
         private async Task TestFileMatch(string fileName, 
+                                        int index,
                                         string savedText, 
                                         string newText,
                                         bool expectedResult)
         {
             await SetAzureShare();
             PageChangeTracker pageTracker = await PageChangeTracker.CreateAsync(fileName, azureFileShare);
-            pageTracker.SetNewText(0, savedText);
+            pageTracker.SetNewText(index, savedText);
             var wroteOk = await pageTracker.SaveChanges();
 
             if (wroteOk)
             {
-                Assert.Equal(expectedResult, pageTracker.HasTextChanged(0, newText));
+                Assert.Equal(expectedResult, pageTracker.HasTextChanged(index, newText));
             }
             else
             {
