@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.Azure.WebJobs;
@@ -53,21 +55,45 @@ namespace GAWUrlChecker
                 LoggerFacade.LogInformation("Starting CheckUrls.");
                 //LogEnvStrings();
 
+                Task<PageChangeTracker> trackerTask = GetPageTracker(lastChangedFileName);
                 // Read in desired text from requested page.
                 //TargetTextData targetData = new TargetTextData(ConfigValues.GetValue("targetText"),
                 //                                                Int32.Parse(ConfigValues.GetValue("changingTextOffset")),
                 //                                                Int32.Parse(ConfigValues.GetValue("changingTextLength")));
-                TargetTextData target1 = ConfigValues.GetTarget(0);
+                int numPages = ConfigValues.GetNumberOfTargets();
+                var pageTasks = new List<Task<String>>();
                 PageTextRetriever myRetriever = new PageTextRetriever();
-                Task<string> pageTask = myRetriever.GetTargetText(target1);
+                for (int i = 0; i < numPages; i++)
+                {
+                    TargetTextData target = ConfigValues.GetTarget(i);
+                    pageTasks.Add(myRetriever.GetTargetText(target));
+                }
+                //TargetTextData target1 = ConfigValues.GetTarget(0);
+                //Task<string> pageTask = myRetriever.GetTargetText(target1);
 
-                Task<PageChangeTracker> trackerTask = GetPageTracker(lastChangedFileName);
                 // Compare to date from the last time we checked the page.
                 // If different:
                 //      Save new date to check against last time.
                 //      Send message that page changed.
                 PageChangeTracker chgTracker = await trackerTask;
-                string currentTargetText = await pageTask;
+                string[] pageStrings = await Task.WhenAll(pageTasks);
+                //string currentTargetText = await pageTask;
+                StringBuilder message = new StringBuilder();
+                for (int i = 0; i < pageStrings.Length; i++)
+                {
+                    if (chgTracker.HasTextChanged(i, pageStrings[i]))
+                    {
+                        chgTracker.SetNewText(i, pageStrings[i]);
+                        message.Append(GetMessage(pageStrings[i], ConfigValues.GetTarget(i).targetUrl));
+                    }
+                }
+                Task<bool> sendTask = null;
+                if (message.Length > 0)
+                {
+                    sendTask = SendMessage(message.ToString());
+                }
+
+                /*
                 if (chgTracker.HasTextChanged(0, currentTargetText))
                 {
                     // Note that could send the message but not save the change,
@@ -78,8 +104,15 @@ namespace GAWUrlChecker
                     Task<bool> msgTask = SendMessage(currentTargetText, target1.targetUrl);
                     pageChanged = await msgTask;
                 }
-                await chgTracker.SaveChanges();
-                LoggerFacade.LogInformation($"Finished CheckUrls, pageChanged={pageChanged}.");
+                */
+                Task<bool> saveTask = chgTracker.SaveChanges();
+                bool savedOk = await saveTask;
+                bool sentOk = false;
+                if (message.Length > 0)
+                {
+                    sentOk = await sendTask;
+                }
+                LoggerFacade.LogInformation($"Finished CheckUrls, sentOk={sentOk}.");
             }
             catch (Exception ex)
             {
@@ -102,7 +135,16 @@ namespace GAWUrlChecker
         }
 
         // Use AWS SNS to send an email to the configured topic.
-        private static async Task<bool> SendMessage(string changeDate, string url)
+        private static string GetMessage(string newText, string url)
+        {
+            string msg = $"The web page {url} changed, " + 
+                         $"new value is {newText}";
+
+            return msg;
+        }
+
+        // Use AWS SNS to send an email to the configured topic.
+        private static async Task<bool> SendMessage(string message)
         {
             bool sentOk = false;
             try
@@ -110,9 +152,7 @@ namespace GAWUrlChecker
                 NotificationClient sns = new NotificationClient();
                 string topic = ConfigValues.GetValue("snsTopic");
                 LoggerFacade.LogInformation($"topic={topic}");
-                string msg = $"The web page {url} changed, " + 
-                                $"new last date changed is {changeDate}";
-                sentOk = await sns.SendSnsMessage(topic, msg);
+                sentOk = await sns.SendSnsMessage(topic, message);
             }
             catch (Exception ex)
             {
