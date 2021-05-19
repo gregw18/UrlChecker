@@ -36,8 +36,9 @@ namespace GAWUrlChecker
                 LoggerFacade.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
                 // LogEnvStrings();
 
-                string fileName = ConfigValues.GetValue("lastChangedFileName");
-                await CheckUrls(fileName);
+                string previousContentsFileName = ConfigValues.GetValue("lastChangedFileName");
+                var myChecker = new UrlCheckManager();
+                bool result = await myChecker.CheckUrls(previousContentsFileName);
                 LoggerFacade.LogInformation("Finished Run.");
             }
             catch (Exception ex)
@@ -46,6 +47,7 @@ namespace GAWUrlChecker
             }
         }
 
+/*
         public static async Task<bool> CheckUrls(string lastChangedFileName)
         {
             bool pageChanged = false;
@@ -147,6 +149,7 @@ namespace GAWUrlChecker
 
             return sentOk;
         }
+*/
 
         // Write all environment variables to the log.
         // Not a good idea if worried about others seeing these!

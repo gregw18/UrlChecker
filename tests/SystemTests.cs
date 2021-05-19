@@ -38,7 +38,8 @@ namespace tests
             var result = await chgTracker.SaveChanges();
             if (result)
             { 
-                bool checkResult = await UrlChecker.CheckUrls(fileName);
+                var myManager = new UrlCheckManager();
+                bool checkResult = await myManager.CheckUrls(fileName);
                 Assert.False(checkResult);
             }
             else
@@ -59,7 +60,8 @@ namespace tests
             var result = await azureFileShare.WriteToFile(fileName, savedDate);
             if (result)
             { 
-                bool checkResult = await UrlChecker.CheckUrls(fileName);
+                var myManager = new UrlCheckManager();
+                bool checkResult = await myManager.CheckUrls(fileName);
                 Assert.False(checkResult);
             }
             else
@@ -84,7 +86,8 @@ namespace tests
             var result = await azureFileShare.WriteToFile(fileName, savedDate);
             if (result)
             { 
-                Func<Task> act = () => UrlChecker.CheckUrls(fileName);
+                var myManager = new UrlCheckManager();
+                Func<Task> act = () => myManager.CheckUrls(fileName);
                 await Assert.ThrowsAsync<ArgumentException>(act);
             }
             else
