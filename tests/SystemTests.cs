@@ -60,8 +60,6 @@ namespace tests
             var chgTracker = await PageChangeTracker.CreateAsync(fileName, azureFileShare);
             chgTracker.HasTextChanged(0, savedDate);
             var result = await chgTracker.SaveChanges();
-
-            // var result = await azureFileShare.WriteToFile(fileName, savedDate);
             if (result)
             { 
                 var myManager = new UrlCheckManager();
@@ -91,8 +89,8 @@ namespace tests
             if (result)
             { 
                 var myManager = new UrlCheckManager();
-                Func<Task> act = () => myManager.HaveAnyPagesChanged(fileName);
-                await Assert.ThrowsAsync<ArgumentException>(act);
+                await myManager.HaveAnyPagesChanged(fileName);
+                Assert.True(myManager.sentErrors);
             }
             else
             {
@@ -100,6 +98,27 @@ namespace tests
             }
             // Restore the good url for the next test.
             target.targetUrl = goodUrl;
+            await azureFileShare.DeleteFile(fileName);
+        }
+
+        [Fact]
+        public async void ReadGoodPageInvalidTarget_NoMatch()
+        {
+            // Read in a good page, but look for an invalid target
+            // tag, expect to get an exception.
+            string fileName = "badtest3.txt";
+            string badTarget = "BAD_BAD_SOBAD";
+            TargetTextData target = ConfigValues.GetTarget(0);
+            string goodTarget = target.targetLabel;
+            target.targetLabel = badTarget;
+            await SetAzureShare();
+
+            var myManager = new UrlCheckManager();
+            await myManager.HaveAnyPagesChanged(fileName);
+            Assert.True(myManager.sentErrors);
+
+            // Restore the good url for the next test.
+            target.targetLabel = goodTarget;
             await azureFileShare.DeleteFile(fileName);
         }
 

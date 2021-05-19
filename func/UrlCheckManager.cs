@@ -11,6 +11,9 @@ namespace GAWUrlChecker
 {
     public class UrlCheckManager
     {
+
+        public bool sentErrors = false;
+
         public async Task<bool> HaveAnyPagesChanged(string lastChangedFileName)
         {
             bool pageChanged = false;
@@ -25,38 +28,39 @@ namespace GAWUrlChecker
                 string[] pageStrings = await Task.WhenAll(pageTasks);
 
                 // Compare to text from the last time we checked the page.
+                string messages = GetChangeMessages(chgTracker, pageStrings);
+
                 // If different:
-                //      Save new text to check against next time.
                 //      Send message that page changed.
-                // Note that could send the message but not save the change,
+                //      Save the new values.
+                // Note that could send the message but not save the changes,
                 // which would result in a second "changed" message the next day,
                 // even though there was no change. However, this is better than
                 // not sending a message, for my use case.
-                StringBuilder message = new StringBuilder();
-                for (int i = 0; i < pageStrings.Length; i++)
-                {
-                    if (chgTracker.HasTextChanged(i, pageStrings[i]))
-                    {
-                        // chgTracker.SetNewText(i, pageStrings[i]);
-                        message.Append(GetMessage(pageStrings[i], ConfigValues.GetTarget(i).targetUrl));
-                    }
-                }
                 bool sentOk = false;
-                if (message.Length > 0)
+                if (messages.Length > 0)
                 {
                     pageChanged = true;
-                    Task<bool> sendTask = SendMessage(message.ToString());
+                    Task<bool> sendTask = SendMessage(messages);
                     Task<bool> saveTask = chgTracker.SaveChanges();
                     bool savedOk = await saveTask;
                     sentOk = await sendTask;
                 }
-                LoggerFacade.LogInformation($"Finished HaveAnyPagesChanged, sentOk={sentOk}.");
+                LoggerFacade.LogInformation($"HaveAnyPagesChanged, sentOk={sentOk}.");
+            }
+            catch (ArgumentException ex)
+            {
+                // If can't find target text on web page, send message that there is a problem.
+                LoggerFacade.LogError(ex, "Exception in UrlCheckManager.HaveAnyPagesChanged.");
+                string msg = ex.Message;
+                sentErrors = await SendMessage(msg);
             }
             catch (Exception ex)
             {
                 LoggerFacade.LogError(ex, "Exception in UrlCheckManager.HaveAnyPagesChanged.");
                 throw;
             }
+            LoggerFacade.LogInformation($"Finished HaveAnyPagesChanged, pageChanged={pageChanged}.");
 
             return pageChanged;
         }
@@ -86,6 +90,22 @@ namespace GAWUrlChecker
             }
 
             return pageTasks;
+        }
+
+        // Compare to text from the last time we checked the page.
+        // If different, create message that page changed.
+        private string GetChangeMessages(PageChangeTracker chgTracker, string[] pageStrings)
+        {
+            StringBuilder message = new StringBuilder();
+            for (int i = 0; i < pageStrings.Length; i++)
+            {
+                if (chgTracker.HasTextChanged(i, pageStrings[i]))
+                {
+                    message.Append(GetMessage(pageStrings[i], ConfigValues.GetTarget(i).targetUrl));
+                }
+            }
+
+            return message.ToString();
         }
 
         // Generate message for this page, given that it changed.
