@@ -11,12 +11,12 @@ namespace GAWUrlChecker
 {
     public class UrlCheckManager
     {
-        public async Task<bool> CheckUrls(string lastChangedFileName)
+        public async Task<bool> HaveAnyPagesChanged(string lastChangedFileName)
         {
             bool pageChanged = false;
             try
             {
-                LoggerFacade.LogInformation("Starting CheckUrls.");
+                LoggerFacade.LogInformation("Starting HaveAnyPagesChanged.");
 
                 Task<PageChangeTracker> trackerTask = GetPageTracker(lastChangedFileName);
 
@@ -37,7 +37,7 @@ namespace GAWUrlChecker
                 {
                     if (chgTracker.HasTextChanged(i, pageStrings[i]))
                     {
-                        chgTracker.SetNewText(i, pageStrings[i]);
+                        // chgTracker.SetNewText(i, pageStrings[i]);
                         message.Append(GetMessage(pageStrings[i], ConfigValues.GetTarget(i).targetUrl));
                     }
                 }
@@ -50,11 +50,11 @@ namespace GAWUrlChecker
                     bool savedOk = await saveTask;
                     sentOk = await sendTask;
                 }
-                LoggerFacade.LogInformation($"Finished CheckUrls, sentOk={sentOk}.");
+                LoggerFacade.LogInformation($"Finished HaveAnyPagesChanged, sentOk={sentOk}.");
             }
             catch (Exception ex)
             {
-                LoggerFacade.LogError(ex, "Exception in UrlCheckManager.CheckUrls.");
+                LoggerFacade.LogError(ex, "Exception in UrlCheckManager.HaveAnyPagesChanged.");
                 throw;
             }
 

@@ -38,7 +38,7 @@ namespace GAWUrlChecker
 
                 string previousContentsFileName = ConfigValues.GetValue("lastChangedFileName");
                 var myChecker = new UrlCheckManager();
-                bool result = await myChecker.CheckUrls(previousContentsFileName);
+                bool result = await myChecker.HaveAnyPagesChanged(previousContentsFileName);
                 LoggerFacade.LogInformation("Finished Run.");
             }
             catch (Exception ex)

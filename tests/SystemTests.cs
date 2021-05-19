@@ -34,12 +34,12 @@ namespace tests
 
             await SetAzureShare();
             var chgTracker = await PageChangeTracker.CreateAsync(fileName, azureFileShare);
-            chgTracker.SetNewText(0, savedDate);
+            chgTracker.HasTextChanged(0, savedDate);
             var result = await chgTracker.SaveChanges();
             if (result)
             { 
                 var myManager = new UrlCheckManager();
-                bool checkResult = await myManager.CheckUrls(fileName);
+                bool checkResult = await myManager.HaveAnyPagesChanged(fileName);
                 Assert.False(checkResult);
             }
             else
@@ -57,12 +57,16 @@ namespace tests
             string fileName = "badtest2.txt";
             string savedDate = "Not a Valid Date";
             await SetAzureShare();
-            var result = await azureFileShare.WriteToFile(fileName, savedDate);
+            var chgTracker = await PageChangeTracker.CreateAsync(fileName, azureFileShare);
+            chgTracker.HasTextChanged(0, savedDate);
+            var result = await chgTracker.SaveChanges();
+
+            // var result = await azureFileShare.WriteToFile(fileName, savedDate);
             if (result)
             { 
                 var myManager = new UrlCheckManager();
-                bool checkResult = await myManager.CheckUrls(fileName);
-                Assert.False(checkResult);
+                bool checkResult = await myManager.HaveAnyPagesChanged(fileName);
+                Assert.True(checkResult);
             }
             else
             {
@@ -87,7 +91,7 @@ namespace tests
             if (result)
             { 
                 var myManager = new UrlCheckManager();
-                Func<Task> act = () => myManager.CheckUrls(fileName);
+                Func<Task> act = () => myManager.HaveAnyPagesChanged(fileName);
                 await Assert.ThrowsAsync<ArgumentException>(act);
             }
             else

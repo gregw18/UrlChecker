@@ -61,7 +61,7 @@ namespace tests
         {
             await SetAzureShare();
             PageChangeTracker pageTracker = await PageChangeTracker.CreateAsync(fileName, azureFileShare);
-            pageTracker.SetNewText(index, savedText);
+            pageTracker.HasTextChanged(index, savedText);
             var wroteOk = await pageTracker.SaveChanges();
 
             if (wroteOk)

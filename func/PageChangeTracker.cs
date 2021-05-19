@@ -70,6 +70,34 @@ namespace GAWUrlChecker
             }
         }
 
+        // Compare given string to saved string.
+        // If saved string is empty, indicates that this is the first time
+        // has run, so is considered a change.
+        public bool HasTextChanged(int key, string newText)
+        {
+            bool hasChanged = false;
+            if (savedValues.ContainsKey(key))
+            {
+                if (newText != savedValues[key])
+                {
+                    hasChanged = true;
+                }
+            }
+            else
+            {
+                hasChanged = true;
+            }
+
+            // If the value changed, save the new text, ready to be written back out.
+            if (hasChanged)
+            {
+                savedValues[key] = newText;
+                anyChanges = true;
+            }
+
+            return hasChanged;
+        }
+/*
         // Update the in-memory value for the given key, if necessary.
         public void SetNewText(int key, string newText)
         {
@@ -87,7 +115,7 @@ namespace GAWUrlChecker
                 anyChanges = true;
             }
         }
-
+*/
         // If any data has changed, save it all in the file.
         public async Task<bool> SaveChanges()
         {
@@ -107,23 +135,6 @@ namespace GAWUrlChecker
 
             return completed;
         }
-
-
-        // Compare given string to saved string.
-        // If saved string is empty, indicates that this is the first time
-        // has run, so is considered a change.
-        public bool HasTextChanged(int key, string newText)
-        {
-            bool hasChanged = false;
-            if (savedValues.ContainsKey(key))
-            {
-                if (newText != savedValues[key]) hasChanged = true;
-            }
-            else hasChanged = true;
-
-            return hasChanged;
-        }
-
 
         private async Task<string> GetSavedText()
         {
