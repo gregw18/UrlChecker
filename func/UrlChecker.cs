@@ -36,7 +36,6 @@ namespace GAWUrlChecker
                 LoggerFacade.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
                 // LogEnvStrings();
 
-                // string url = ConfigValues.GetValue("webSiteUrl");
                 string fileName = ConfigValues.GetValue("lastChangedFileName");
                 await CheckUrls(fileName);
                 LoggerFacade.LogInformation("Finished Run.");
@@ -56,10 +55,8 @@ namespace GAWUrlChecker
                 //LogEnvStrings();
 
                 Task<PageChangeTracker> trackerTask = GetPageTracker(lastChangedFileName);
-                // Read in desired text from requested page.
-                //TargetTextData targetData = new TargetTextData(ConfigValues.GetValue("targetText"),
-                //                                                Int32.Parse(ConfigValues.GetValue("changingTextOffset")),
-                //                                                Int32.Parse(ConfigValues.GetValue("changingTextLength")));
+
+                // Create and start task to read in and parse each page.
                 int numPages = ConfigValues.GetNumberOfTargets();
                 var pageTasks = new List<Task<String>>();
                 PageTextRetriever myRetriever = new PageTextRetriever();
@@ -68,16 +65,17 @@ namespace GAWUrlChecker
                     TargetTextData target = ConfigValues.GetTarget(i);
                     pageTasks.Add(myRetriever.GetTargetText(target));
                 }
-                //TargetTextData target1 = ConfigValues.GetTarget(0);
-                //Task<string> pageTask = myRetriever.GetTargetText(target1);
 
-                // Compare to date from the last time we checked the page.
+                // Compare to text from the last time we checked the page.
                 // If different:
-                //      Save new date to check against last time.
+                //      Save new text to check against next time.
                 //      Send message that page changed.
+                // Note that could send the message but not save the change,
+                // which would result in a second "changed" message the next day,
+                // even though there was no change. However, this is better than
+                // not sending a message, for my use case.
                 PageChangeTracker chgTracker = await trackerTask;
                 string[] pageStrings = await Task.WhenAll(pageTasks);
-                //string currentTargetText = await pageTask;
                 StringBuilder message = new StringBuilder();
                 for (int i = 0; i < pageStrings.Length; i++)
                 {
@@ -93,18 +91,6 @@ namespace GAWUrlChecker
                     sendTask = SendMessage(message.ToString());
                 }
 
-                /*
-                if (chgTracker.HasTextChanged(0, currentTargetText))
-                {
-                    // Note that could send the message but not save the change,
-                    // which would result in a second "changed" message the next day,
-                    // even though there was no change. However, this is better than
-                    // not sending a message, for my use case.
-                    chgTracker.SetNewText(0, currentTargetText);
-                    Task<bool> msgTask = SendMessage(currentTargetText, target1.targetUrl);
-                    pageChanged = await msgTask;
-                }
-                */
                 Task<bool> saveTask = chgTracker.SaveChanges();
                 bool savedOk = await saveTask;
                 bool sentOk = false;

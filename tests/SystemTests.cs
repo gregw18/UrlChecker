@@ -60,11 +60,11 @@ namespace tests
             if (result)
             { 
                 bool checkResult = await UrlChecker.CheckUrls(fileName);
-                Assert.True(checkResult);
+                Assert.False(checkResult);
             }
             else
             {
-                Assert.True(false, $"Failed to save expected date to file: {fileName}");
+                Assert.True(false, $"Failed to save expected data to file: {fileName}");
             }
             await azureFileShare.DeleteFile(fileName);
         }

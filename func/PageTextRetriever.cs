@@ -8,11 +8,11 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 
 
-
 namespace GAWUrlChecker
 {
     public class PageTextRetriever
     {
+        // Retrieve everything from requested url, then parse out the requested section.
         public async Task<string> GetTargetText(TargetTextData targetData)
         {
             string targetText = "";
@@ -22,7 +22,7 @@ namespace GAWUrlChecker
             string pageText = await GetPageFullText(targetData.targetUrl);
             if (pageText.Trim().Length > 0)
             {
-                // Parse out last changed date.
+                // Parse out the requested section.
                 targetText = GetTargetTextFromPage(pageText, targetData);
             }
             else
@@ -44,8 +44,11 @@ namespace GAWUrlChecker
             return htmlResponse;
         }
 
-        // Parse out the last changed date from the given text.
-        // For the page that I am interested in, there is a dateModified property
+        // Parse out the requested section from the given text.
+        // Need to provide a target - some hardcoded text near the text that changes
+        // every time the page is updated - the offset from the end of the target to
+        // the text that changes, and the length of the text that changes.
+        // For example, on the page that I am interested in, there is a dateModified property
         // near the bottom of the page that appears to be updated whenever the page's
         // content is updated.
         private string GetTargetTextFromPage(string htmlResponse, TargetTextData targetData)
