@@ -95,5 +95,19 @@ namespace GAWUrlChecker
             targetOffset = offset;
             targetLength = length;
         }
+
+        public bool AreValuesSame(TargetTextData obj2)
+        {
+            bool areSame = false;
+            if (targetUrl == obj2.targetUrl && 
+                targetLabel == obj2.targetLabel &&
+                targetOffset == obj2.targetOffset &&
+                targetLength == obj2.targetLength)
+            {
+                areSame = true;
+            }
+            
+            return areSame;
+        }
     }
 }

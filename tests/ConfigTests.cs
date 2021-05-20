@@ -11,11 +11,16 @@ using GAWUrlChecker;
 
 namespace tests
 {
+    [CollectionDefinition("Serial Collection", DisableParallelization = true)]
+    public class SerialDefinitionClass
+    {}
+
     // Test that am accessing config values correctly.
     // Get expected value for good env, empty for bad env.
     // Get expected value for good secret, empty for bad secret.
     // Need separate class to populate the env, based on local.settings.json,
     // so that can access config values in other tests.
+    [Collection("Serial Collection")]
     public class ConfigValueTests : IClassFixture<ConfigFixture>
     {
 
@@ -58,6 +63,52 @@ namespace tests
             Assert.Equal("", value);
         }
 
+        // First target should exist by default.
+        [Fact]
+        public void FirstTarget_Exists()
+        {
+            TargetTextData target1 = ConfigValues.GetTarget(0);
+            Assert.True(target1.targetUrl.Length > 0);
+            Assert.Equal(1, ConfigValues.GetNumberOfTargets());
+        }
+
+        // If add second target, values should match
+        [Fact]
+        public void SecondTarget_Exists()
+        {
+            TargetTextData target2 = new TargetTextData("http://www.url2.gov", "targetText2", 10, 100);
+            fixture.AddTarget(target2);
+            Assert.Equal(2, ConfigValues.GetNumberOfTargets());
+            Assert.True(target2.AreValuesSame(ConfigValues.GetTarget(1)));
+            fixture.RemoveLastTarget();
+        }
+
+        // If add third target, values should match.
+        [Fact]
+        public void ThirdTarget_Exists()
+        {
+            TargetTextData target2 = new TargetTextData("http://www.url2.ca", "targetText2", 10, 100);
+            fixture.AddTarget(target2);
+            TargetTextData target3 = new TargetTextData("http://www.url3.com", "target2", 20, 30);
+            fixture.AddTarget(target3);
+            Assert.Equal(3, ConfigValues.GetNumberOfTargets());
+            Assert.True(target2.AreValuesSame(ConfigValues.GetTarget(1)));
+            Assert.True(target3.AreValuesSame(ConfigValues.GetTarget(2)));
+            fixture.RemoveLastTarget();
+            fixture.RemoveLastTarget();
+        }
+
+        // If add second target, but ask for third, should get null back.
+        [Fact]
+        public void AddTwoTargetsRequestThird_Fails()
+        {
+            TargetTextData target2 = new TargetTextData("http://www.url2.ca", "targetText2", 10, 100);
+            fixture.AddTarget(target2);
+            Assert.Equal(2, ConfigValues.GetNumberOfTargets());
+            Assert.True(ConfigValues.GetTarget(2) is null);
+            fixture.RemoveLastTarget();
+        }
+
     }
 }
 
@@ -97,4 +148,35 @@ public class ConfigFixture
         }
         // LoggerFacade.LogInformation("Finished ReadSettingsIntoEnv().\n");
     }
+
+    // Add another target to the environment, for testing multiple sites.
+    public void AddTarget(TargetTextData myTarget)
+    {
+        int index = ConfigValues.GetNumberOfTargets();
+        string urlKey = "webSiteUrl" + index.ToString().Trim();
+        string labelKey = "targetText" + index.ToString().Trim();
+        string offsetKey = "targetTextOffset" + index.ToString().Trim();
+        string lengthKey = "targetTextLength" + index.ToString().Trim();
+        Environment.SetEnvironmentVariable(urlKey, myTarget.targetUrl);
+        Environment.SetEnvironmentVariable(labelKey, myTarget.targetLabel);
+        Environment.SetEnvironmentVariable(offsetKey, myTarget.targetOffset.ToString());
+        Environment.SetEnvironmentVariable(lengthKey, myTarget.targetLength.ToString());
+        ConfigValues.Reinitialize();
+    }
+
+    // Remove the last target in the current list.
+    public void RemoveLastTarget()
+    {
+        int lastIndex = ConfigValues.GetNumberOfTargets() - 1;
+        string urlKey = "webSiteUrl" + lastIndex.ToString().Trim();
+        string labelKey = "targetText" + lastIndex.ToString().Trim();
+        string offsetKey = "targetTextOffset" + lastIndex.ToString().Trim();
+        string lengthKey = "targetTextLength" + lastIndex.ToString().Trim();
+        Environment.SetEnvironmentVariable(urlKey, null);
+        Environment.SetEnvironmentVariable(labelKey, null);
+        Environment.SetEnvironmentVariable(offsetKey, null);
+        Environment.SetEnvironmentVariable(lengthKey, null);
+        ConfigValues.Reinitialize();
+    }
+
 }

@@ -74,6 +74,13 @@ namespace GAWUrlChecker
             return isInitialized;
         }
 
+        // Clear everything and reread. Mostly used for testing.
+        public static bool Reinitialize()
+        {
+            isInitialized = false;
+            return Initialize();
+        }
+        
         // Looks up the requested key in the dictionary, returns corresponding value.
         // Returns empty string if key not found.
         public static string GetValue(string key)
