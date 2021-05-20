@@ -112,7 +112,7 @@ namespace GAWUrlChecker
         private string GetMessage(string newText, string url)
         {
             string msg = $"The web page {url} changed, " + 
-                         $"new value is {newText}";
+                         $"new value is {newText}{Environment.NewLine}\r\n\r\n";
 
             return msg;
         }

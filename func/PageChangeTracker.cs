@@ -97,25 +97,7 @@ namespace GAWUrlChecker
 
             return hasChanged;
         }
-/*
-        // Update the in-memory value for the given key, if necessary.
-        public void SetNewText(int key, string newText)
-        {
-            if (savedValues.ContainsKey(key))
-            {
-                if (savedValues[key] != newText)
-                {
-                    savedValues[key] = newText;
-                    anyChanges = true;
-                }
-            }
-            else
-            {
-                savedValues.Add(key, newText);
-                anyChanges = true;
-            }
-        }
-*/
+
         // If any data has changed, save it all in the file.
         public async Task<bool> SaveChanges()
         {
