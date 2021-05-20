@@ -11,15 +11,12 @@ using GAWUrlChecker;
 
 namespace tests
 {
-    [CollectionDefinition("Serial Collection", DisableParallelization = true)]
-    //public class SerialDefinitionClass
-    //{}
-
     // Test that am accessing config values correctly.
     // Get expected value for good env, empty for bad env.
     // Get expected value for good secret, empty for bad secret.
     // Need separate class to populate the env, based on local.settings.json,
     // so that can access config values in other tests.
+    [CollectionDefinition("Serial Collection", DisableParallelization = true)]
     [Collection("Serial Collection")]
     public class ConfigValueTests : IClassFixture<ConfigFixture>
     {
@@ -121,18 +118,34 @@ class LocalSettings
 
 public class ConfigFixture
 {
+    private List<string> dontSave = new List<string>()
+    {
+        "webSiteUrl",
+        "targetText",
+        "targetTextOffset",
+        "targetTextLength"
+    };
+
     public ConfigFixture()
     {
         LoggerFacade.UseConsole();
 
         LoggerFacade.LogInformation("Starting ConfigFixture.");
         ReadSettingsIntoEnv();
+
+        // Put in one known target.
+        TargetTextData target1 = new TargetTextData("https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection/prevention-risks/covid-19-vaccine-treatment/vaccine-rollout.html", 
+                                                    "dateModified", 2, 10);
+        AddTarget(target1);
+
         UrlChecker.LogEnvStrings();
         ConfigValues.Initialize();
+        EnsureHaveOneTarget();
     }
 
     // Read settings from local.settings.json into environment variables, to simulate
     // normal azure functions environment.
+    // However, don't write any target data, as tests need to specify it.
     private void ReadSettingsIntoEnv()
     {
         string settingsFile = @"..\..\..\..\func\local.settings.json";
@@ -144,9 +157,29 @@ public class ConfigFixture
         foreach (var setting in values.Values)
         {
             // LoggerFacade.LogInformation($"key={setting.Key}, value={setting.Value}");
-            Environment.SetEnvironmentVariable(setting.Key, setting.Value);
+            if (SaveSetting(setting.Key))
+            {
+                Environment.SetEnvironmentVariable(setting.Key, setting.Value);
+            }
         }
         // LoggerFacade.LogInformation("Finished ReadSettingsIntoEnv().\n");
+    }
+
+    // If setting name matches anything in dontSave list, don't want to add it
+    // to the environment.
+    private bool SaveSetting(string settingName)
+    {
+        bool saveIt = true;
+        foreach (string name in dontSave)
+        {
+            if (settingName.StartsWith(name))
+            { 
+                saveIt = false;
+                break;
+            }
+        }
+
+        return saveIt;
     }
 
     // Add another target to the environment, for testing multiple sites.
@@ -179,4 +212,17 @@ public class ConfigFixture
         ConfigValues.Reinitialize();
     }
 
+    // Remove all targets except first.
+    private void EnsureHaveOneTarget()
+    {
+        int numTargets = ConfigValues.GetNumberOfTargets();
+        if (numTargets > 1)
+        {
+            for (int i = numTargets; i > 1; i--)
+            {
+                RemoveLastTarget();
+            }
+            ConfigValues.Reinitialize();
+        }
+    }
 }

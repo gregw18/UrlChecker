@@ -32,39 +32,6 @@ namespace GAWUrlChecker
                     ConfigRetriever cfgRetriever = new ConfigRetriever();
                     ReadGlobalValues(cfgRetriever);
                     ReadTargets(cfgRetriever);
-                    /*
-                    string vaultName = "vaultName";
-                    config.Add(vaultName, cfgRetriever.ReadValue(vaultName));
-
-                    // Dictionary of config item names and whether each is a secret (i.e. is
-                    // stored in the key vault, rather than an environment variable.)
-                    Dictionary<string, bool> isSecret = new Dictionary<string, bool>();
-                    isSecret.Add("secret1", true);
-                    isSecret.Add("awsAccessKeyId", true);
-                    isSecret.Add("awsSecretAccessKey", true);
-                    isSecret.Add("webSiteUrl", false);
-                    isSecret.Add("shareName", false);
-                    isSecret.Add("dirName", false);
-                    isSecret.Add("lastChangedFileName", false);
-                    isSecret.Add("snsTopic", false);
-                    isSecret.Add("awsRegionName", false);
-                    isSecret.Add("targetText", false);
-                    isSecret.Add("changingTextOffset", false);
-                    isSecret.Add("changingTextLength", false);
-
-                    // Read each item in and add name/value to the config dictionary.
-                    foreach (KeyValuePair<string, bool> kvp in isSecret)
-                    {
-                        if (kvp.Value)
-                        {
-                            config.Add(kvp.Key, cfgRetriever.ReadSecret(config[vaultName], kvp.Key));
-                        }
-                        else
-                        {
-                            config.Add(kvp.Key, cfgRetriever.ReadValue(kvp.Key));
-                        }
-                    }
-                    */
                     isInitialized = true;
                     // LogValues();
                 }
@@ -80,7 +47,7 @@ namespace GAWUrlChecker
             isInitialized = false;
             return Initialize();
         }
-        
+
         // Looks up the requested key in the dictionary, returns corresponding value.
         // Returns empty string if key not found.
         public static string GetValue(string key)
@@ -113,7 +80,13 @@ namespace GAWUrlChecker
 
         public static int GetNumberOfTargets()
         {
-            return targets.Count;
+            int numTargets = 0;
+            if (isInitialized)
+            {
+                numTargets = targets.Count;
+            }
+
+            return numTargets;
         }
 
         // If request a valid item, return it, otherwise return null;
