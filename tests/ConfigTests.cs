@@ -12,8 +12,8 @@ using GAWUrlChecker;
 namespace tests
 {
     [CollectionDefinition("Serial Collection", DisableParallelization = true)]
-    public class SerialDefinitionClass
-    {}
+    //public class SerialDefinitionClass
+    //{}
 
     // Test that am accessing config values correctly.
     // Get expected value for good env, empty for bad env.
