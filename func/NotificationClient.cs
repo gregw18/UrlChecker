@@ -78,8 +78,7 @@ namespace GAWUrlChecker
             {
                 // Find arn where everything after last : matches our desired topic, 
                 // if it exists in this batch.
-                var result = resp.Topics.Where(t => t.TopicArn.EndsWith(":" + topic))
-                        .FirstOrDefault();
+                var result = resp.Topics.FirstOrDefault(t => t.TopicArn.EndsWith(":" + topic));
                 if (! (result is null))
                 {
                     arn = result.TopicArn;
