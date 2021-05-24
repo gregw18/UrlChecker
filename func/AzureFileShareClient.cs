@@ -96,8 +96,8 @@ namespace GAWUrlChecker
                 // Convert the string to a byte array, so can write to file.
                 byte[] bytes = new UTF8Encoding(true).GetBytes(value);
                 LoggerFacade.LogInformation("Converted string to byte array.");
-                var writeOptions = new ShareFileOpenWriteOptions();
-                writeOptions.MaxSize = bytes.Length;
+                var writeOptions = new ShareFileOpenWriteOptions {MaxSize = bytes.Length};
+                //writeOptions.MaxSize = bytes.Length;
                 using Stream stream = await file.OpenWriteAsync(overwrite: true,
                                                                 position: 0, 
                                                                 options: writeOptions);

@@ -45,10 +45,6 @@ namespace GAWUrlChecker
             }
             catch (RequestFailedException e)
             {
-                string errString = $"Caught code {e.ErrorCode} " + 
-                                $"status: {e.Status} " + 
-                                $"message: {e.Message}" +
-                                $"stack: {e.StackTrace}";
                 LoggerFacade.LogError(e, "Failed in ConfigRetriever.ReadSecret.");
             }
 

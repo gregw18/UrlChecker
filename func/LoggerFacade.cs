@@ -67,7 +67,7 @@ namespace GAWUrlChecker
             LogInformation(fullMsg);
         }
 
-        public static void LogDebug(Exception ex, string logMsg)
+        public static void LogDebug(string logMsg)
         {
             LogInformation(logMsg);
         }

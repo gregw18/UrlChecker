@@ -73,7 +73,7 @@ namespace tests
         [Fact]
         public void SecondTarget_Exists()
         {
-            TargetTextData target2 = new TargetTextData("http://www.url2.gov", "targetText2", 10, 100);
+            var target2 = new TargetTextData( "http://www.url2.gov", "targetText2", 10, 100);
             fixture.AddTarget(target2);
             Assert.Equal(2, ConfigValues.GetNumberOfTargets());
             Assert.True(target2.AreValuesSame(ConfigValues.GetTarget(1)));
@@ -84,9 +84,9 @@ namespace tests
         [Fact]
         public void ThirdTarget_Exists()
         {
-            TargetTextData target2 = new TargetTextData("http://www.url2.ca", "targetText2", 10, 100);
+            var target2 = new TargetTextData("http://www.url2.ca", "targetText2", 10, 100);
             fixture.AddTarget(target2);
-            TargetTextData target3 = new TargetTextData("http://www.url3.com", "target2", 20, 30);
+            var target3 = new TargetTextData("http://www.url3.com", "target2", 20, 30);
             fixture.AddTarget(target3);
             Assert.Equal(3, ConfigValues.GetNumberOfTargets());
             Assert.True(target2.AreValuesSame(ConfigValues.GetTarget(1)));
@@ -99,7 +99,7 @@ namespace tests
         [Fact]
         public void AddTwoTargetsRequestThird_Fails()
         {
-            TargetTextData target2 = new TargetTextData("http://www.url2.ca", "targetText2", 10, 100);
+            var target2 = new TargetTextData("http://www.url2.ca", "targetText2", 10, 100);
             fixture.AddTarget(target2);
             Assert.Equal(2, ConfigValues.GetNumberOfTargets());
             Assert.True(ConfigValues.GetTarget(2) is null);
@@ -107,122 +107,122 @@ namespace tests
         }
 
     }
-}
 
 
-class LocalSettings
-{
-    public bool IsEncrypted {get; set; }
-    public Dictionary<string, string> Values {get; set; }
-}
-
-public class ConfigFixture
-{
-    private List<string> dontSave = new List<string>()
+    class LocalSettings
     {
-        "webSiteUrl",
-        "targetText",
-        "targetTextOffset",
-        "targetTextLength"
-    };
-
-    public ConfigFixture()
-    {
-        LoggerFacade.UseConsole();
-
-        LoggerFacade.LogInformation("Starting ConfigFixture.");
-        ReadSettingsIntoEnv();
-
-        // Put in one known target.
-        TargetTextData target1 = new TargetTextData("https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection/prevention-risks/covid-19-vaccine-treatment/vaccine-rollout.html", 
-                                                    "dateModified", 2, 10);
-        AddTarget(target1);
-
-        UrlChecker.LogEnvStrings();
-        ConfigValues.Initialize();
-        EnsureHaveOneTarget();
+        public bool IsEncrypted {get; set; }
+        public Dictionary<string, string> Values {get; set; }
     }
 
-    // Read settings from local.settings.json into environment variables, to simulate
-    // normal azure functions environment.
-    // However, don't write any target data, as tests need to specify it.
-    private void ReadSettingsIntoEnv()
+    public class ConfigFixture
     {
-        string settingsFile = @"..\..\..\..\func\local.settings.json";
-        var text = File.ReadAllText(settingsFile);
-        LoggerFacade.LogInformation($"text={text}");
-
-        var values = JsonSerializer.Deserialize<LocalSettings>(text);
-
-        foreach (var setting in values.Values)
+        private readonly List<string> dontSave = new List<string>()
         {
-            // LoggerFacade.LogInformation($"key={setting.Key}, value={setting.Value}");
-            if (SaveSetting(setting.Key))
-            {
-                Environment.SetEnvironmentVariable(setting.Key, setting.Value);
-            }
-        }
-        // LoggerFacade.LogInformation("Finished ReadSettingsIntoEnv().\n");
-    }
+            "webSiteUrl",
+            "targetText",
+            "targetTextOffset",
+            "targetTextLength"
+        };
 
-    // If setting name matches anything in dontSave list, don't want to add it
-    // to the environment.
-    private bool SaveSetting(string settingName)
-    {
-        bool saveIt = true;
-        foreach (string name in dontSave)
+        public ConfigFixture()
         {
-            if (settingName.StartsWith(name))
-            { 
-                saveIt = false;
-                break;
-            }
+            LoggerFacade.UseConsole();
+
+            LoggerFacade.LogInformation("Starting ConfigFixture.");
+            ReadSettingsIntoEnv();
+
+            // Put in one known target.
+            var target1 = new TargetTextData("https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection/prevention-risks/covid-19-vaccine-treatment/vaccine-rollout.html", 
+                                                        "dateModified", 2, 10);
+            AddTarget(target1);
+
+            UrlChecker.LogEnvStrings();
+            ConfigValues.Initialize();
+            EnsureHaveOneTarget();
         }
 
-        return saveIt;
-    }
-
-    // Add another target to the environment, for testing multiple sites.
-    public void AddTarget(TargetTextData myTarget)
-    {
-        int index = ConfigValues.GetNumberOfTargets();
-        string urlKey = "webSiteUrl" + index.ToString().Trim();
-        string labelKey = "targetText" + index.ToString().Trim();
-        string offsetKey = "targetTextOffset" + index.ToString().Trim();
-        string lengthKey = "targetTextLength" + index.ToString().Trim();
-        Environment.SetEnvironmentVariable(urlKey, myTarget.targetUrl);
-        Environment.SetEnvironmentVariable(labelKey, myTarget.targetLabel);
-        Environment.SetEnvironmentVariable(offsetKey, myTarget.targetOffset.ToString());
-        Environment.SetEnvironmentVariable(lengthKey, myTarget.targetLength.ToString());
-        ConfigValues.Reinitialize();
-    }
-
-    // Remove the last target in the current list.
-    public void RemoveLastTarget()
-    {
-        int lastIndex = ConfigValues.GetNumberOfTargets() - 1;
-        string urlKey = "webSiteUrl" + lastIndex.ToString().Trim();
-        string labelKey = "targetText" + lastIndex.ToString().Trim();
-        string offsetKey = "targetTextOffset" + lastIndex.ToString().Trim();
-        string lengthKey = "targetTextLength" + lastIndex.ToString().Trim();
-        Environment.SetEnvironmentVariable(urlKey, null);
-        Environment.SetEnvironmentVariable(labelKey, null);
-        Environment.SetEnvironmentVariable(offsetKey, null);
-        Environment.SetEnvironmentVariable(lengthKey, null);
-        ConfigValues.Reinitialize();
-    }
-
-    // Remove all targets except first.
-    private void EnsureHaveOneTarget()
-    {
-        int numTargets = ConfigValues.GetNumberOfTargets();
-        if (numTargets > 1)
+        // Read settings from local.settings.json into environment variables, to simulate
+        // normal azure functions environment.
+        // However, don't write any target data, as tests need to specify it.
+        private void ReadSettingsIntoEnv()
         {
-            for (int i = numTargets; i > 1; i--)
+            string settingsFile = @"..\..\..\..\func\local.settings.json";
+            var text = File.ReadAllText(settingsFile);
+            LoggerFacade.LogInformation($"text={text}");
+
+            var values = JsonSerializer.Deserialize<LocalSettings>(text);
+
+            foreach (var setting in values.Values)
             {
-                RemoveLastTarget();
+                // LoggerFacade.LogInformation($"key={setting.Key}, value={setting.Value}");
+                if (SaveSetting(setting.Key))
+                {
+                    Environment.SetEnvironmentVariable(setting.Key, setting.Value);
+                }
             }
+            // LoggerFacade.LogInformation("Finished ReadSettingsIntoEnv().\n");
+        }
+
+        // If setting name matches anything in dontSave list, don't want to add it
+        // to the environment.
+        private bool SaveSetting(string settingName)
+        {
+            bool saveIt = true;
+            foreach (string name in dontSave)
+            {
+                if (settingName.StartsWith(name))
+                { 
+                    saveIt = false;
+                    break;
+                }
+            }
+
+            return saveIt;
+        }
+
+        // Add another target to the environment, for testing multiple sites.
+        public void AddTarget(TargetTextData myTarget)
+        {
+            int index = ConfigValues.GetNumberOfTargets();
+            string urlKey = "webSiteUrl" + index.ToString().Trim();
+            string labelKey = "targetText" + index.ToString().Trim();
+            string offsetKey = "targetTextOffset" + index.ToString().Trim();
+            string lengthKey = "targetTextLength" + index.ToString().Trim();
+            Environment.SetEnvironmentVariable(urlKey, myTarget.targetUrl);
+            Environment.SetEnvironmentVariable(labelKey, myTarget.targetLabel);
+            Environment.SetEnvironmentVariable(offsetKey, myTarget.targetOffset.ToString());
+            Environment.SetEnvironmentVariable(lengthKey, myTarget.targetLength.ToString());
             ConfigValues.Reinitialize();
+        }
+
+        // Remove the last target in the current list.
+        public void RemoveLastTarget()
+        {
+            int lastIndex = ConfigValues.GetNumberOfTargets() - 1;
+            string urlKey = "webSiteUrl" + lastIndex.ToString().Trim();
+            string labelKey = "targetText" + lastIndex.ToString().Trim();
+            string offsetKey = "targetTextOffset" + lastIndex.ToString().Trim();
+            string lengthKey = "targetTextLength" + lastIndex.ToString().Trim();
+            Environment.SetEnvironmentVariable(urlKey, null);
+            Environment.SetEnvironmentVariable(labelKey, null);
+            Environment.SetEnvironmentVariable(offsetKey, null);
+            Environment.SetEnvironmentVariable(lengthKey, null);
+            ConfigValues.Reinitialize();
+        }
+
+        // Remove all targets except first.
+        private void EnsureHaveOneTarget()
+        {
+            int numTargets = ConfigValues.GetNumberOfTargets();
+            if (numTargets > 1)
+            {
+                for (int i = numTargets; i > 1; i--)
+                {
+                    RemoveLastTarget();
+                }
+                ConfigValues.Reinitialize();
+            }
         }
     }
 }
