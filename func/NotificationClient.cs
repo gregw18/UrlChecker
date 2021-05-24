@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -75,16 +76,16 @@ namespace GAWUrlChecker
             LoggerFacade.LogInformation($"GetTopicArn finished await, response = {resp.HttpStatusCode}, have {resp.Topics.Count} topics.");
             while (true)
             {
-                foreach(Topic t in resp.Topics)
+                // Find arn where everything after last : matches our desired topic, 
+                // if it exists in this batch.
+                var result = resp.Topics.Where(t => t.TopicArn.EndsWith(":" + topic))
+                        .FirstOrDefault();
+                if (! (result is null))
                 {
-                    LoggerFacade.LogInformation($"topic: {t.TopicArn}");
-                    string thisName = t.TopicArn[(t.TopicArn.LastIndexOf(":") + 1)..];
-                    if (thisName == topic)
-                    {
-                        arn = t.TopicArn;
-                        break;
-                    }
+                    arn = result.TopicArn;
+                    break;
                 }
+
                 if (resp.NextToken is null || resp.NextToken.Length == 0)
                 {
                     break;
