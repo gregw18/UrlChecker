@@ -17,8 +17,8 @@ namespace tests
         public SystemTests(ConfigFixture fixture)
         {
             this.fixture = fixture;
-            string shareName = ConfigValues.GetValue("shareName");
-            string dirName = ConfigValues.GetValue("dirName");
+            //string shareName = ConfigValues.GetValue("shareName");
+            //string dirName = ConfigValues.GetValue("dirName");
         }
 
         [Fact]
@@ -29,7 +29,7 @@ namespace tests
             // website changed in between the two calls.
             string fileName = "goodtest3.txt";
             var targetData = ConfigValues.GetTarget(0);
-            PageTextRetriever myRetriever = new PageTextRetriever();
+            var myRetriever = new PageTextRetriever();
             string savedDate = await myRetriever.GetTargetText(targetData);
 
             await SetAzureShare();

@@ -117,7 +117,7 @@ namespace tests
 
     public class ConfigFixture
     {
-        private readonly List<string> dontSave = new List<string>()
+        private readonly List<string> dontSave = new()
         {
             "webSiteUrl",
             "targetText",

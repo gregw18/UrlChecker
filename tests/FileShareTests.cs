@@ -68,7 +68,7 @@ namespace tests
                     LoggerFacade.LogInformation("WriteToExisting test, finished second write.");
                     actualText = await azureFiles.ReadFile(fileName);
                     // Delete file.
-                    bool result3 = await azureFiles.DeleteFile(fileName);
+                    await azureFiles.DeleteFile(fileName);
                     LoggerFacade.LogInformation("WriteToExisting test, finished delete.");
                 }
             }
@@ -93,7 +93,7 @@ namespace tests
                     actualText = await azureFiles.ReadFile(fileName);
 
                     // Delete file.
-                    var result2 = await azureFiles.DeleteFile(fileName);
+                    await azureFiles.DeleteFile(fileName);
                     LoggerFacade.LogInformation("WriteToNew test, finished delete.");
                 }
             }

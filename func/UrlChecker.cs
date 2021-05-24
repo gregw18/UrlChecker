@@ -1,20 +1,14 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Support.UI;
-using SeleniumExtras.WaitHelpers;
-//using OpenQA.Selenium.WebDriver.PhantomJS;
-//using OpenQA.Selenium.WebDriver;
+// using OpenQA.Selenium;
+// using OpenQA.Selenium.Chrome;
+// using OpenQA.Selenium.Support.UI;
+// using SeleniumExtras.WaitHelpers;
 
 
 // Azure function, timer triggered, that checks whether a given web page has changed

@@ -59,7 +59,7 @@ namespace GAWUrlChecker
             {
                 sentMsg = true;
             }
-            LoggerFacade.LogInformation($"Response to publishing was {pubResp.HttpStatusCode.ToString()}.");
+            LoggerFacade.LogInformation($"Response to publishing was {pubResp.HttpStatusCode}.");
             
             return sentMsg;
         }
@@ -78,7 +78,7 @@ namespace GAWUrlChecker
                 foreach(Topic t in resp.Topics)
                 {
                     LoggerFacade.LogInformation($"topic: {t.TopicArn}");
-                    string thisName = t.TopicArn.Substring(t.TopicArn.LastIndexOf(":") + 1);
+                    string thisName = t.TopicArn[(t.TopicArn.LastIndexOf(":") + 1)..];
                     if (thisName == topic)
                     {
                         arn = t.TopicArn;

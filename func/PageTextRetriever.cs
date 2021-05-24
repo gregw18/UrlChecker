@@ -56,7 +56,7 @@ namespace GAWUrlChecker
             // Searching from end of string because target is at bottom of page.
             int startLoc = htmlResponse.LastIndexOf(targetData.targetLabel);
             LoggerFacade.LogInformation($"GetTargetTextFrompage, startLoc={startLoc}");
-            string targetText = "";
+            string targetText;
             if (startLoc > -1)
             {
                 int targetStartLoc = startLoc + targetData.targetLabel.Length + targetData.targetOffset;

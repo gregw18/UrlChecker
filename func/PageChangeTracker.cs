@@ -61,8 +61,8 @@ namespace GAWUrlChecker
                     int pos = line.IndexOf('=');
                     if (pos > 0)
                     {
-                        int key = Int32.Parse(line.Substring(linePrefix.Length, pos - linePrefix.Length));
-                        string value = line.Substring(pos + 1);
+                        int key = Int32.Parse(line[linePrefix.Length..pos]);
+                        string value = line[(pos + 1)..];
                         savedValues.Add(key, value);
                         LoggerFacade.LogInformation($"ReadSavedValues, added key: {key} and value: {value}.");
                     }
@@ -101,7 +101,7 @@ namespace GAWUrlChecker
         // If any data has changed, save it all in the file.
         public async Task<bool> SaveChanges()
         {
-            bool completed = false;
+            bool completed;
             if (anyChanges)
             {
                 var outputSb = new StringBuilder();
