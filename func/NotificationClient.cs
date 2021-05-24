@@ -79,7 +79,7 @@ namespace GAWUrlChecker
                 // Find arn where everything after last : matches our desired topic, 
                 // if it exists in this batch.
                 var result = resp.Topics.FirstOrDefault(t => t.TopicArn.EndsWith(":" + topic));
-                if (! (result is null))
+                if (!(result is null))
                 {
                     arn = result.TopicArn;
                     break;
@@ -109,11 +109,11 @@ namespace GAWUrlChecker
             if (createResp.HttpStatusCode.ToString() == "OK")
             {
                 arn = createResp.TopicArn;
-                LoggerFacade.LogInformation($"Created topic {topic}, " + 
-                                        $"arn={arn}.");
+                LoggerFacade.LogInformation($"Created topic {topic}, "
+                                        + $"arn={arn}.");
             }
-            LoggerFacade.LogInformation( $"Finished CreateTopic, topic = {topic}, " + 
-                                            $"arn={arn}.");
+            LoggerFacade.LogInformation( $"Finished CreateTopic, topic = {topic}, "
+                + $"arn={arn}.");
 
             return arn;
         }
