@@ -44,9 +44,9 @@ namespace GAWUrlChecker
                 // LogEnvStrings();
 
                 string previousContentsFileName = ConfigValues.GetValue("lastChangedFileName");
-                //var myChecker = new UrlCheckManager();
-                //bool result = await myChecker.HaveAnyPagesChanged(previousContentsFileName);
-                TestDynamicScraping();
+                var myChecker = new UrlCheckManager();
+                bool result = await myChecker.HaveAnyPagesChanged(previousContentsFileName);
+                // TestDynamicScraping();
                 LoggerFacade.LogInformation("Finished Run.");
             }
             catch (Exception ex)
@@ -55,6 +55,7 @@ namespace GAWUrlChecker
             }
         }
 
+        /* 
         // Proof of concept, using WebDriver and headless chrome to do scraping of dynamic web page.
         // Investigated because my second desired target site, while externally identical in layout
         // to the first site, incorporates a lot more dynamic data, including the "dateModified" field
@@ -93,6 +94,8 @@ namespace GAWUrlChecker
                     //#LoggerFacade.LogInformation($"#dm #dm={pathElement}");
                 }
         }
+        */
+
 /*
         public static async Task<bool> CheckUrls(string lastChangedFileName)
         {
