@@ -1,0 +1,21 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=zz3300zzzzz;AccountKey=zzzzzzzzzzzzzzzzzzz;EndpointSuffix=core.windows.net",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "vaultName": "urlcheckerkvus",
+    "shareName": "vaccinepagechecker",
+    "dirName": "webpage",
+    "lastChangedFileName": "lastmodified.txt",
+    "snsTopic": "VaccinationURLChangeWatcher",
+    "awsRegionName": "ca-central-1", 
+    "webSiteUrl0": "https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection/prevention-risks/covid-19-vaccine-treatment/vaccine-rollout.html",
+    "targetText0": "dateModified",
+    "targetTextOffset0": "2",
+    "targetTextLength0": "10",
+    "webSiteUrl1": "https://covid-19.ontario.ca/covid-19-vaccines-getting-your-second-dose",
+    "targetText1": "Last updated:",
+    "targetTextOffset1": "1",
+    "targetTextLength1": "12"
+  }
+}
