@@ -1,4 +1,8 @@
-REM Publish the UrlCheckerGAW function app to Azure
+REM Publish the function app to Azure
 REM Remember to run from the func directory.
 
-func azure functionapp publish UrlCheckerGAW --publish-local-settings
+@ECHO off
+SETLOCAL
+CALL ..\readcfg.bat ..\batch.cfg
+
+func azure functionapp publish %function% --publish-local-settings
