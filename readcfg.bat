@@ -1,4 +1,4 @@
-REM Reads in config values from provided file name.
+REM Reads in config values from provided file name (first parameter.)
 REM Assumes every line is of the form "key:value".
 REM For each line, creates an environment variable named key
 REM and assigns it value. i.e. "set key=value". 
