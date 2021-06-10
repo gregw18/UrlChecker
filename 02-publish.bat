@@ -1,8 +1,8 @@
 REM Publish the function app to Azure
-REM Remember to run from the func directory.
 
 @ECHO off
 SETLOCAL
-CALL ..\readcfg.bat ..\batch.cfg
+CALL readcfg.bat batch.cfg
 
+cd func
 func azure functionapp publish %function% --publish-local-settings
