@@ -9,3 +9,7 @@ call az group create --name %resrcGroup% --location %azLocation%
 
 call az keyvault create --resource-group %resrcGroup% --name %keyVault% ^
 --enabled-for-deployment -l %azLocation%
+
+call az functionapp create --name %functionApp% --storage-account %storageName% ^
+  --consumption-plan-location %azLocation% ^
+  --resource-group %resrcGroup%

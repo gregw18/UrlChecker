@@ -5,4 +5,4 @@ SETLOCAL
 CALL readcfg.bat batch.cfg
 
 cd func
-func azure functionapp publish %function% --publish-local-settings
+func azure functionapp publish %functionApp% --publish-local-settings
