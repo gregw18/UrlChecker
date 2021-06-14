@@ -87,6 +87,7 @@ namespace GAWUrlChecker
             {
                 hasChanged = true;
             }
+            LoggerFacade.LogInformation($"HasTextChanged, hasChanged={hasChanged}, anyChanges={anyChanges}.");
 
             // If the value changed, save the new text, ready to be written back out.
             if (hasChanged)

@@ -104,6 +104,7 @@ namespace GAWUrlChecker
                     message.Append(GetMessage(pageStrings[i], ConfigValues.GetTarget(i).targetUrl));
                 }
             }
+            LoggerFacade.LogInformation($"GetChangeMessages, message={message}");
 
             return message.ToString();
         }

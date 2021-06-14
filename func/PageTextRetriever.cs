@@ -37,8 +37,16 @@ namespace GAWUrlChecker
         private async Task<string> GetPageFullText(string url)
         {
             LoggerFacade.LogInformation("Starting GetPageFullText.");
-            var uri = new Uri (url);
-            string htmlResponse = await new WebClient().DownloadStringTaskAsync(uri);
+            string htmlResponse = "";
+            try
+            {
+                var uri = new Uri (url);
+                htmlResponse = await new WebClient().DownloadStringTaskAsync(uri);
+            }
+            catch (WebException ex)
+            {
+                LoggerFacade.LogError(ex, $"Exception in PageTextRetriever.GetPageFullText, for url {url}");
+            }
             LoggerFacade.LogInformation("Finished GetPageFullText.");
 
             return htmlResponse;
