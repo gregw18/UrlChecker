@@ -45,7 +45,10 @@ namespace GAWUrlChecker
             }
             catch (WebException ex)
             {
+                // Rethrow with url added, so caller can let user know which url caused a problem.
                 LoggerFacade.LogError(ex, $"Exception in PageTextRetriever.GetPageFullText, for url {url}");
+                ex.Data.Add("GetPageFullText", url);
+                throw;
             }
             LoggerFacade.LogInformation("Finished GetPageFullText.");
 

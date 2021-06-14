@@ -55,6 +55,22 @@ namespace GAWUrlChecker
                 string msg = ex.Message;
                 sentErrors = await SendMessage(msg);
             }
+            catch (WebException ex)
+            {
+                // If get webException, and unable to retrieve web page, send message that
+                // there was a problem.
+                if (ex.Data.Contains("GetPageFullText"))
+                {
+                string msg = "It seems that there was a problem retrieving the url:\n"
+                    + ex.Data["GetPageFullText"] + "\n" + ex.Message;
+                    sentErrors = await SendMessage(msg);
+                }
+                else
+                {
+                    // Just log other errors.
+                    LoggerFacade.LogError(ex, "Exception in UrlCheckManager.HaveAnyPagesChanged.");
+                }
+            }
             catch (Exception ex)
             {
                 LoggerFacade.LogError(ex, "Exception in UrlCheckManager.HaveAnyPagesChanged.");
@@ -90,6 +106,19 @@ namespace GAWUrlChecker
             }
 
             return pageTasks;
+        }
+
+        // Return a string containing the requested urls.
+        private string GetUrls()
+        {
+            int numPages = ConfigValues.GetNumberOfTargets();
+            string urls = "";
+            for (int i = 0; i < numPages; i++)
+            {
+                urls += ConfigValues.GetTarget(i) + "\n";
+            }
+
+            return urls;
         }
 
         // Compare to text from the last time we checked the page.
