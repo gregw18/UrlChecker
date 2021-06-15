@@ -22,54 +22,27 @@ namespace GAWUrlChecker
                 LoggerFacade.LogInformation("Starting HaveAnyPagesChanged.");
 
                 Task<PageChangeTracker> trackerTask = GetPageTracker(lastChangedFileName);
-
-                List<Task<String>> pageTasks = GetTargets();
                 PageChangeTracker chgTracker = await trackerTask;
-                string[] pageStrings = await Task.WhenAll(pageTasks);
 
-                // Compare to text from the last time we checked the page.
-                string messages = GetChangeMessages(chgTracker, pageStrings);
+                string messages = await GetChangeMessages(chgTracker);
 
-                // If different:
+                // If found differences:
                 //      Send message that page changed.
                 //      Save the new values.
                 // Note that could send the message but not save the changes,
                 // which would result in a second "changed" message the next day,
                 // even though there was no change. However, this is better than
                 // not sending a message, for my use case.
-                bool sentOk = false;
+                bool sentOk = false, savedOk = false;
                 if (messages.Length > 0)
                 {
                     pageChanged = true;
                     Task<bool> sendTask = SendMessage(messages);
                     Task<bool> saveTask = chgTracker.SaveChanges();
-                    bool savedOk = await saveTask;
+                    savedOk = await saveTask;
                     sentOk = await sendTask;
                 }
-                LoggerFacade.LogInformation($"HaveAnyPagesChanged, sentOk={sentOk}.");
-            }
-            catch (ArgumentException ex)
-            {
-                // If can't find target text on web page, send message that there is a problem.
-                LoggerFacade.LogError(ex, "Exception in UrlCheckManager.HaveAnyPagesChanged.");
-                string msg = ex.Message;
-                sentErrors = await SendMessage(msg);
-            }
-            catch (WebException ex)
-            {
-                // If get webException, and unable to retrieve web page, send message that
-                // there was a problem.
-                if (ex.Data.Contains("GetPageFullText"))
-                {
-                string msg = "It seems that there was a problem retrieving the url:\n"
-                    + ex.Data["GetPageFullText"] + "\n" + ex.Message;
-                    sentErrors = await SendMessage(msg);
-                }
-                else
-                {
-                    // Just log other errors.
-                    LoggerFacade.LogError(ex, "Exception in UrlCheckManager.HaveAnyPagesChanged.");
-                }
+                LoggerFacade.LogInformation($"HaveAnyPagesChanged, sentOk={sentOk}, savedOk={savedOk}.");
             }
             catch (Exception ex)
             {
@@ -108,16 +81,44 @@ namespace GAWUrlChecker
             return pageTasks;
         }
 
-        // For each page, compare to text from the last time we checked the page.
-        // If different, create message that page changed.
-        private string GetChangeMessages(PageChangeTracker chgTracker, string[] pageStrings)
+        // For each page, retrieve the current text, compare to text from the last time we
+        // checked the page. If different, create message that page changed.
+        private async Task<string> GetChangeMessages(PageChangeTracker chgTracker)
         {
             StringBuilder message = new StringBuilder();
-            for (int i = 0; i < pageStrings.Length; i++)
+            try
             {
-                if (chgTracker.HasTextChanged(i, pageStrings[i]))
+                // Get current values for each url.
+                List<Task<String>> pageTasks = GetTargets();
+                string[] pageStrings = await Task.WhenAll(pageTasks);
+
+                // Check if value changed - append message if it did.
+                for (int i = 0; i < pageStrings.Length; i++)
                 {
-                    message.Append(GetMessage(pageStrings[i], ConfigValues.GetTarget(i).targetUrl));
+                    if (chgTracker.HasTextChanged(i, pageStrings[i]))
+                    {
+                        message.Append(GetMessage(pageStrings[i], ConfigValues.GetTarget(i).targetUrl));
+                    }
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                // If can't find target text on web page, send message that there is a problem.
+                LoggerFacade.LogError(ex, "Exception in UrlCheckManager.GetChangeMessages.");
+                string msg = ex.Message;
+                sentErrors = await SendMessage(msg);
+            }
+            catch (WebException ex)
+            {
+                LoggerFacade.LogError(ex, "Exception in UrlCheckManager.GetChangeMessages.");
+
+                // If get webException, and unable to retrieve web page, send message that
+                // there was a problem.
+                if (ex.Data.Contains("GetPageFullText"))
+                {
+                    string msg = "It seems that there was a problem retrieving the url:\n"
+                        + ex.Data["GetPageFullText"] + "\n" + ex.Message;
+                    sentErrors = await SendMessage(msg);
                 }
             }
             LoggerFacade.LogInformation($"GetChangeMessages, message={message}");
