@@ -10,13 +10,7 @@ namespace tests
     // results correctly.
     public class PageChangeTrackerTests : IClassFixture<ConfigFixture>
     {
-        ConfigFixture fixture;
         AzureFileShareClient azureFileShare;
-
-        public PageChangeTrackerTests(ConfigFixture fixture)
-        {
-            this.fixture = fixture;
-        }
 
         [Theory]
         [InlineData(0)]

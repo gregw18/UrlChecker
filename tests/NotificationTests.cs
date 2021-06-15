@@ -15,13 +15,6 @@ namespace tests
         // Don't get match for topic with partial match of beginning of name.
     public class NotificationTests : IClassFixture<ConfigFixture>
     {
-        ConfigFixture fixture;
-
-        public NotificationTests(ConfigFixture fixture)
-        {
-            this.fixture = fixture;
-        }
-
         [Fact]
         public async void SendMsg_Succeeds()
         {

@@ -37,7 +37,7 @@ namespace GAWUrlChecker
         private async Task<string> GetPageFullText(string url)
         {
             LoggerFacade.LogInformation("Starting GetPageFullText.");
-            string htmlResponse = "";
+            string htmlResponse;
             try
             {
                 var uri = new Uri (url);

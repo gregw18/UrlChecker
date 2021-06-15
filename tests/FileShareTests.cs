@@ -11,14 +11,11 @@ namespace tests
     //          Get empty string when try to read from non-existing file.
     public class FileShareTests : IClassFixture<ConfigFixture>
     {
-        ConfigFixture fixture;
+        private readonly string shareName;
+        private readonly string dirName;
 
-        private string shareName;
-        private string dirName;
-
-        public FileShareTests(ConfigFixture fixture)
+        public FileShareTests()
         {
-            this.fixture = fixture;
             shareName = ConfigValues.GetValue("shareName");
             dirName = ConfigValues.GetValue("dirName");
         }

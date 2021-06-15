@@ -108,19 +108,6 @@ namespace GAWUrlChecker
             return pageTasks;
         }
 
-        // Return a string containing the requested urls.
-        private string GetUrls()
-        {
-            int numPages = ConfigValues.GetNumberOfTargets();
-            string urls = "";
-            for (int i = 0; i < numPages; i++)
-            {
-                urls += ConfigValues.GetTarget(i) + "\n";
-            }
-
-            return urls;
-        }
-
         // Compare to text from the last time we checked the page.
         // If different, create message that page changed.
         private string GetChangeMessages(PageChangeTracker chgTracker, string[] pageStrings)

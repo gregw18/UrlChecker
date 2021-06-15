@@ -11,15 +11,7 @@ namespace tests
     // then run full check.
     public class SystemTests : IClassFixture<ConfigFixture>
     {
-        ConfigFixture fixture;
         AzureFileShareClient azureFileShare;
-
-        public SystemTests(ConfigFixture fixture)
-        {
-            this.fixture = fixture;
-            //string shareName = ConfigValues.GetValue("shareName");
-            //string dirName = ConfigValues.GetValue("dirName");
-        }
 
         [Fact]
         public async void StoreMatchedDate_Matches()

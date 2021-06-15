@@ -21,12 +21,12 @@ namespace tests
     public class ConfigValueTests : IClassFixture<ConfigFixture>
     {
 
-        ConfigFixture fixture;
+        //readonly ConfigFixture fixture;
 
-        public ConfigValueTests(ConfigFixture fixture)
-        {
-            this.fixture = fixture;
-        }
+        //public ConfigValueTests(ConfigFixture fixture)
+        //{
+        //    this.fixture = fixture;
+        //}
 
         [Fact]
         public void ReadGoodEnv_GetExpected()
@@ -74,10 +74,10 @@ namespace tests
         public void SecondTarget_Exists()
         {
             var target2 = new TargetTextData( "http://www.url2.gov", "targetText2", 10, 100);
-            fixture.AddTarget(target2);
+            ConfigFixture.AddTarget(target2);
             Assert.Equal(2, ConfigValues.GetNumberOfTargets());
             Assert.True(target2.AreValuesSame(ConfigValues.GetTarget(1)));
-            fixture.RemoveLastTarget();
+            ConfigFixture.RemoveLastTarget();
         }
 
         // If add third target, values should match.
@@ -85,14 +85,14 @@ namespace tests
         public void ThirdTarget_Exists()
         {
             var target2 = new TargetTextData("http://www.url2.ca", "targetText2", 10, 100);
-            fixture.AddTarget(target2);
+            ConfigFixture.AddTarget(target2);
             var target3 = new TargetTextData("http://www.url3.com", "target2", 20, 30);
-            fixture.AddTarget(target3);
+            ConfigFixture.AddTarget(target3);
             Assert.Equal(3, ConfigValues.GetNumberOfTargets());
             Assert.True(target2.AreValuesSame(ConfigValues.GetTarget(1)));
             Assert.True(target3.AreValuesSame(ConfigValues.GetTarget(2)));
-            fixture.RemoveLastTarget();
-            fixture.RemoveLastTarget();
+            ConfigFixture.RemoveLastTarget();
+            ConfigFixture.RemoveLastTarget();
         }
 
         // If add second target, but ask for third, should get null back.
@@ -100,10 +100,10 @@ namespace tests
         public void AddTwoTargetsRequestThird_Fails()
         {
             var target2 = new TargetTextData("http://www.url2.ca", "targetText2", 10, 100);
-            fixture.AddTarget(target2);
+            ConfigFixture.AddTarget(target2);
             Assert.Equal(2, ConfigValues.GetNumberOfTargets());
             Assert.True(ConfigValues.GetTarget(2) is null);
-            fixture.RemoveLastTarget();
+            ConfigFixture.RemoveLastTarget();
         }
 
     }
@@ -182,7 +182,7 @@ namespace tests
         }
 
         // Add another target to the environment, for testing multiple sites.
-        public void AddTarget(TargetTextData myTarget)
+        public static void AddTarget(TargetTextData myTarget)
         {
             int index = ConfigValues.GetNumberOfTargets();
             string urlKey = "webSiteUrl" + index.ToString().Trim();
@@ -197,7 +197,7 @@ namespace tests
         }
 
         // Remove the last target in the current list.
-        public void RemoveLastTarget()
+        public static void RemoveLastTarget()
         {
             int lastIndex = ConfigValues.GetNumberOfTargets() - 1;
             string urlKey = "webSiteUrl" + lastIndex.ToString().Trim();
@@ -212,7 +212,7 @@ namespace tests
         }
 
         // Remove all targets except first.
-        private void EnsureHaveOneTarget()
+        private static void EnsureHaveOneTarget()
         {
             int numTargets = ConfigValues.GetNumberOfTargets();
             if (numTargets > 1)

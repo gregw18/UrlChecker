@@ -15,8 +15,8 @@ namespace GAWUrlChecker
     // for a given topic.
     public class NotificationClient
     {
-        private AmazonSimpleNotificationServiceClient client;
-        private CancellationToken cancelToken;
+        private readonly AmazonSimpleNotificationServiceClient client;
+        private readonly CancellationToken cancelToken;
 
         public NotificationClient()
         {
