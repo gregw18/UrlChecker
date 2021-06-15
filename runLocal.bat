@@ -9,10 +9,13 @@ if [%1] == [] goto noproxy
 if %1==t (goto proxy) else (goto noproxy)
 
 :proxy
-curl --header "Content-Type: application/json" --request POST -x 127.0.0.1:8888 --data {input:\"test\"} %testUrl%
+curl --header "Content-Type: application/json" --request POST ^
+    -x 127.0.0.1:8888 ^
+    --data {input:\"test\"} %testUrl%
 goto eof
 
 :noproxy
-curl --header "Content-Type: application/json" --request POST --data {input:\"test\"} %testUrl%
+curl --header "Content-Type: application/json" --request POST ^
+    --data {input:\"test\"} %testUrl%
 
 :eof
