@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using Amazon;
 using Amazon.SimpleNotificationService;
-using Amazon.SimpleNotificationService.Model;
 
 [assembly: InternalsVisibleTo("tests")]
 namespace GAWUrlChecker

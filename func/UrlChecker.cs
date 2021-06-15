@@ -13,13 +13,14 @@ using Microsoft.Extensions.Logging;
 
 // Azure function, timer triggered, that checks whether a given web page has changed
 // since the last time it was checked. If yes, sends an email to that effect.
-// Uses "dateModified" property that happens to be in the web page that I'm interested in
+// Uses configured "target" string near the text that is expected to change on the page
 // to tell whether the page has changed. Uses AWS SNS to send the email, as Azure doesn't
 // appear to have service for sending emails, and I thought it would be interesting to see
 // what it takes to get Azure and AWS to work together.
 // Automatically publishes local settings to the azure function, for most configuration,
 // but also stores some secrets in an Azure Key Vault - currently the AWS access keys.
-// Stores date the page was last changed in an Azure Storage file share.
+// Stores "previous" values for each website in an Azure Storage file share.
+// Only works with static web pages.
 
 namespace GAWUrlChecker
 {

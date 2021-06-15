@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,6 +7,8 @@ using System.Threading.Tasks;
 
 namespace GAWUrlChecker
 {
+    // Manages entire process of checking each url and sending the message if
+    // one or more have changed.
     public class UrlCheckManager
     {
 
@@ -108,7 +108,7 @@ namespace GAWUrlChecker
             return pageTasks;
         }
 
-        // Compare to text from the last time we checked the page.
+        // For each page, compare to text from the last time we checked the page.
         // If different, create message that page changed.
         private string GetChangeMessages(PageChangeTracker chgTracker, string[] pageStrings)
         {

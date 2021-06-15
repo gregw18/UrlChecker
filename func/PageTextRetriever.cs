@@ -1,15 +1,13 @@
 using System;
-using System.Collections;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 
-using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Logging;
-
 
 namespace GAWUrlChecker
 {
+    // Asychronously retrieve contents of requested url, find the specified element
+    // and return the defined following text.
     public class PageTextRetriever
     {
         // Retrieve everything from requested url, then parse out the requested section.
@@ -61,10 +59,11 @@ namespace GAWUrlChecker
         // the text that changes, and the length of the text that changes.
         // For example, on the page that I am interested in, there is a dateModified property
         // near the bottom of the page that appears to be updated whenever the page's
-        // content is updated.
+        // content is updated. The value that changes starts two characters later, and is
+        // ten characters long.
         private string GetTargetTextFromPage(string htmlResponse, TargetTextData targetData)
         {
-            // Searching from end of string because target is at bottom of page.
+            // Searching from end of string because my target happened to be at bottom of page.
             int startLoc = htmlResponse.LastIndexOf(targetData.targetLabel);
             LoggerFacade.LogInformation($"GetTargetTextFrompage, startLoc={startLoc}");
             string targetText;
@@ -92,6 +91,7 @@ namespace GAWUrlChecker
     }
 
 
+    // Helper class to keep track of data for tracking one website.
     public class TargetTextData
     {
         public string targetUrl;        // Url to read.

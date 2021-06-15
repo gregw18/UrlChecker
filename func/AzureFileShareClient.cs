@@ -8,11 +8,10 @@ using Azure.Storage.Files.Shares.Models;
 
 namespace GAWUrlChecker
 {
-    // Provide access to given share and directory. Must call constructor before
+    // Provide access to given share and directory. Must call CreateAsync before
     // any other methods.
     public class AzureFileShareClient
     {
-
         private static ShareClient share;
         private static ShareDirectoryClient directory;
         private static bool isInitialized = false;
@@ -26,7 +25,7 @@ namespace GAWUrlChecker
         private async Task<AzureFileShareClient> InitializeAsync(string shareName, string dirName)
         {
             string connectionString = System.Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-            LoggerFacade.LogInformation($"connectionString={connectionString}");
+            // LoggerFacade.LogInformation($"connectionString={connectionString}");
 
             share = new ShareClient(connectionString, shareName);
             await share.CreateIfNotExistsAsync();
@@ -82,13 +81,11 @@ namespace GAWUrlChecker
         }
 
         // Write given text to requested file, in current file share/directory.
-        public async Task<bool> WriteToFile(string fileName, 
-                                                    string value)
+        public async Task<bool> WriteToFile(string fileName, string value)
         {
             bool wroteOk = false;
             
             LoggerFacade.LogInformation("Starting WriteToFile");
-
             if (isInitialized)
             {
                 ShareFileClient file = directory.GetFileClient(fileName);
@@ -97,7 +94,6 @@ namespace GAWUrlChecker
                 byte[] bytes = new UTF8Encoding(true).GetBytes(value);
                 LoggerFacade.LogInformation("Converted string to byte array.");
                 var writeOptions = new ShareFileOpenWriteOptions {MaxSize = bytes.Length};
-                //writeOptions.MaxSize = bytes.Length;
                 using Stream stream = await file.OpenWriteAsync(overwrite: true,
                                                                 position: 0, 
                                                                 options: writeOptions);

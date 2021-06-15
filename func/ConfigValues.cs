@@ -7,13 +7,17 @@ namespace GAWUrlChecker
     // Names of config values are hardcoded, as are whether they
     // are secrets - i.e. whether they are found in the key vault or in
     // environment variables.
-    // Data stored in a dictionary of strings - if value isn't a string,
+    // Values are stored in a dictionary of strings - if value isn't a string,
     // caller has to convert it.
     public static class ConfigValues
     {
         private static bool isInitialized = false;
         private static readonly object _locker = new object();
+
+        // Most config values.
         private static Dictionary<string, string> config;
+        
+        // Configuration for urls that we track.
         private static List<TargetTextData> targets;
 
         // Read in the requested variables from environment strings or key vault,
@@ -78,6 +82,7 @@ namespace GAWUrlChecker
             return value;
         }
 
+        // Return number of targets that we are configured to track.
         public static int GetNumberOfTargets()
         {
             int numTargets = 0;

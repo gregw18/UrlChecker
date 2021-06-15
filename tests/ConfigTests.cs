@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging.Abstractions;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,14 +18,6 @@ namespace tests
     [Collection("Serial Collection")]
     public class ConfigValueTests : IClassFixture<ConfigFixture>
     {
-
-        //readonly ConfigFixture fixture;
-
-        //public ConfigValueTests(ConfigFixture fixture)
-        //{
-        //    this.fixture = fixture;
-        //}
-
         [Fact]
         public void ReadGoodEnv_GetExpected()
         {
@@ -161,7 +151,6 @@ namespace tests
                     Environment.SetEnvironmentVariable(setting.Key, setting.Value);
                 }
             }
-            // LoggerFacade.LogInformation("Finished ReadSettingsIntoEnv().\n");
         }
 
         // If setting name matches anything in dontSave list, don't want to add it

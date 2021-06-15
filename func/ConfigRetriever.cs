@@ -8,18 +8,18 @@ using Azure.Security.KeyVault.Secrets;
 
 namespace GAWUrlChecker
 {
-    // Helper class for reading config values from environment and.
+    // Helper class for reading config values from environment and
     // secrets from an Azure Key Vault.
     public class ConfigRetriever
     {
         private SecretClient client;
+        // If see a new vault name, have to create new client.
         private string lastVaultName = "ZZZ";
 
         // Read environment variable of the given name.
         public string ReadValue(string keyName)
         {
             string value = System.Environment.GetEnvironmentVariable(keyName) ?? "";
-            // LoggerFacade.LogInformation($"config {keyName}={value}");
 
             return value;
         }
@@ -41,7 +41,6 @@ namespace GAWUrlChecker
             {
                 var result = client.GetSecret(keyName);
                 value = result.Value.Value;
-                //LoggerFacade.LogInformation($"secret {keyName}={value}");
             }
             catch (RequestFailedException e)
             {

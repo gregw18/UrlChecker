@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace GAWUrlChecker
 {
-    // Track last time a given web page was changed, by storing and retrieving
-    // that date in an Azure file share. Can store multiple values, for multiple
-    // sites, in one file. E.g.
+    // Track whether a given web page was changed, by storing and retrieving
+    // an element that we know will change in an Azure file share. Can store 
+    // multiple values, for multiple sites, in one file. E.g.
     //      PreviousValue0=May 31, 2021
     //      PreviousValue1=April 2, 2020
     // Indexes controlled by caller, but assumed to match indexes for TargetTextData.
-    // Reads all values in on startup. Values in memory are updated as necessary
+    // Reads all values from file in on startup. Values in memory are updated as necessary
     // when processing, then SaveChanges is called at end to write them back
     // to the Azure file share.
     public class PageChangeTracker
@@ -47,6 +47,8 @@ namespace GAWUrlChecker
             return this;
         }
 
+        // Read in the "previous" values from the azure file share. Store in dictionary,
+        // key = index for group. Eg. for webSiteUrl0, key is 0.
         private async Task ReadSavedValues()
         {
             string savedText = await GetSavedText();
@@ -61,6 +63,7 @@ namespace GAWUrlChecker
                     int pos = line.IndexOf('=');
                     if (pos > 0)
                     {
+                        // Split each line at =, parse key off end of first part.
                         int key = Int32.Parse(line[linePrefix.Length..pos]);
                         string value = line[(pos + 1)..];
                         savedValues.Add(key, value);
@@ -89,7 +92,7 @@ namespace GAWUrlChecker
             }
             LoggerFacade.LogInformation($"HasTextChanged, hasChanged={hasChanged}, anyChanges={anyChanges}.");
 
-            // If the value changed, save the new text, ready to be written back out.
+            // If the value changed, save the new text, set flag that we need to write data back out.
             if (hasChanged)
             {
                 savedValues[key] = newText;
