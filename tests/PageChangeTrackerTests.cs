@@ -6,7 +6,7 @@ using GAWUrlChecker;
 
 namespace tests
 {
-    // Test that package change tracker is saving and comparing
+    // Test that page change tracker is saving and comparing
     // results correctly.
     public class PageChangeTrackerTests : IClassFixture<ConfigFixture>
     {
