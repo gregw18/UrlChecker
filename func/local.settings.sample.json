@@ -13,9 +13,9 @@
     "targetText0": "dateModified",
     "targetTextOffset0": "2",
     "targetTextLength0": "10",
-    "webSiteUrl1": "https://covid-19.ontario.ca/covid-19-vaccines-getting-your-second-dose",
-    "targetText1": "Last updated:",
-    "targetTextOffset1": "1",
-    "targetTextLength1": "12"
+    "webSiteUrl1": "https://www.canada.ca/en/revenue-agency.html",
+    "targetText1": "dateModified",
+    "targetTextOffset1": "2",
+    "targetTextLength1": "10"
   }
 }
