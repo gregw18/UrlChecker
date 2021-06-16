@@ -1,9 +1,14 @@
 # URL Checker
 This is a project that I put together to monitor Canada's vaccine delivery web page (https://www.canada.ca/en/public-health/services/diseases/2019-novel-coronavirus-infection/prevention-risks/covid-19-vaccine-treatment/vaccine-rollout.html) for changes so that I could track whether suppliers were delivering on time, and whether delivery dates were being met or constantly adjusted. (Summary - Pfizer/BioNTech are amazing, Moderna is really struggling.) I've tried to generalize it so that it can monitor any static web page for changes, and also to monitor multiple pages. When a change is detected, an email notification is sent.
+
 This C#/.NET Core code, intended to run on a timer as a Microsoft Azure Function, allows you configure a list of urls to check and sends an email (via AWS SNS) when one or more have changed. It uses an Azure Key Vault to store the SNS credentials and an Azure Files share to store the previous values for the tracked web page elements.
-It monitors each page by watching a specific, configured element. I.e. for my original target, there is a "dateModified" element near the bottom of the page that is updated whenever the page is changed. The program retrieves the full text of the page, finds the last instance of the hardcoded text "dateModified", then looks for the changed value starting two characters after the end of the hardcoded text, for the next ten characters. It compares this value to the saved previous value, to see if it changed. 
+
+It monitors each page by watching a specific, configured element. I.e. for my original target, there is a "dateModified" element near the bottom of the page that is updated whenever the page is changed. The program retrieves the full text of the page, finds the last instance of the hardcoded text "dateModified", then looks for the changed value starting two characters after the end of the hardcoded text, for the next ten characters. It compares this value to the saved previous value, to see if it changed.
+
 The url to retrieve, the target text that is searched for, the offset from the end of that text to the start of the changing value and the length of the changing value are all configurable, for as many web pages as desired. See example below for details.
+
 This program only works with static web pages - the text that you want to monitor has to be populated when the page is first retrieved. I've included proof of concept code for parsing dynamic pages but it uses Selenium and headless Chrome, which I didn't want to try installing under Azure Functions.
+
 This was a project intended to give me a bit of experience with C# and Microsoft Azure, while also accessing AWS - since Azure doesn't have any built-in email functionality. Other than storing the AWS credentials securely, accessing the AWS service from Azure was surprisingly easy (and the first bills don't indicate any "hey - what are you using those other guys for?" type charges.) When running twice a day, monitoring two urls, this function appears to be sneaking under the billable thresholds for both providers.
 
 ## Getting Started
@@ -16,14 +21,21 @@ As a cloud-based project, using both Azure and AWS, getting this running require
 6. Configure the access key for your storage account. Go to the portal for your chosen storage account and select "Access keys" under the "Security + networking" section, copy one of the connection strings (they seem to start with "DefaultEndpointsProtocol") and copy that into the "AzureWebJobsStorage" entry of local.settings.json. Then, set the path to the file that will be used to store the previous values - the shareName, dirName and lastChangedFileName. Note that the share, directory and file will all be automatically created if they don't already exist, when the function first runs.
 7. While in local.settings.json, you may as well also set your AWS region in the awsRegionName setting and the name of the SNS topic to publish to, in snsTopic. (The topic will be automatically created if necessary.)
 8. Configure the web site(s) that you want to monitor, again in local.settings.json. For the first site, set the webSiteUrl0, targetText0, targetTextOffset0 and targetTextLength0 entries. The targetText is the fixed (i.e. unchanging) text used to locate the text that changes, targetTextOffset is the number of characters from the end of the target text to the beginning of the text that changes and the targetTextLength is the number of characters to monitor from that position. 
+
 For example, the following snippet is from the page that I am tracking:
+
     \<dd>\<time property="dateModified">2021-04-21\</time>\</dd>
+
 The settings that I use to track the date are:
+
     "targetText0": "dateModified",
     "targetTextOffset0": "2",
     "targetTextLength0": "10",
-The corresponding settings for the second url end with 1 rather than 0, and you can add as many more sets as you like, with increasing indexes. (The parser stops reading when it hits the first webSiteUrl? entry that doesn't exist.) 
+
+The corresponding settings for the second url end with 1 rather than 0, and you can add as many more sets as you like, with increasing indexes. (The parser stops reading when it hits the first webSiteUrl? entry that doesn't exist.)
+
 getHtml.ps1 is a PowerShell script that can be used to retrieve the static results from a web page and save them in a text file, to look for targets near text that changes. Set the URL in the file and change the name of the file to save the results in (the default is html.txt) then run the script. By default Windows will no longer let you run a PowerShell script from a normal command line, but you can enable it - see (https://superuser.com/questions/106360/how-to-enable-execution-of-powershell-scripts).
+
 9. Publish the function to Azure by running 02-publish.bat.
 10. You then need to create an identity for the group/function and give that identity access to the key vault. 03-keyvaultid.bat will create an identify for the function, but, in April, 2021 when I tried it, the az keyvault role command to give the identify access to the key vault wasn't functioning (it gave "unable to establish connection" errors), so I had to do it through the Azure console. Use the steps in https://docs.microsoft.com/en-us/azure/key-vault/general/assign-access-policy-portal. Once in the "Add Access Policy" page, select the first seven "secret permissions", then select "Select Principal". Enter the first part of your function app name to filter the options and select your function app. Leave the "Authorized application" setting as "None selected" and hit the "Add" button. Then hit the "Save" button!
 11. Create a new AWS user for this program and only give it the required access - AmazonSNSFullAccess. I don't recommend using an existing user. Save the associated AccessKeyId and SecretAccessKey.
@@ -35,6 +47,7 @@ getHtml.ps1 is a PowerShell script that can be used to retrieve the static resul
 
 ## Development Environment
 I used VS Code under Windows 10 as my development environment, with the following extensions:
+
 	.Net Core Test Explorer
 	AWS Toolkit
 	Azure Account
@@ -45,6 +58,7 @@ I used VS Code under Windows 10 as my development environment, with the followin
 
 
 Prerequisites
+
 .NET Core 5.0
 C# 8
 Azure cli
