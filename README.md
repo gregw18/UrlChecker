@@ -22,19 +22,19 @@ As a cloud-based project, using both Azure and AWS, getting this running require
 7. While in local.settings.json, you may as well also set your AWS region in the awsRegionName setting and the name of the SNS topic to publish to, in snsTopic. (The topic will be automatically created if necessary.)
 8. Configure the web site(s) that you want to monitor, again in local.settings.json. For the first site, set the webSiteUrl0, targetText0, targetTextOffset0 and targetTextLength0 entries. The targetText is the fixed (i.e. unchanging) text used to locate the text that changes, targetTextOffset is the number of characters from the end of the target text to the beginning of the text that changes and the targetTextLength is the number of characters to monitor from that position. 
 
-For example, the following snippet is from the page that I am tracking:
+	For example, the following snippet is from the page that I am tracking:
 
-    \<dd>\<time property="dateModified">2021-04-21\</time>\</dd>
+    	\<dd>\<time property="dateModified">2021-04-21\</time>\</dd>
 
-The settings that I use to track the date are:
+	The settings that I use to track the date are:
 
-    "targetText0": "dateModified",
-    "targetTextOffset0": "2",
-    "targetTextLength0": "10",
+    	"targetText0": "dateModified",
+    	"targetTextOffset0": "2",
+    	"targetTextLength0": "10",
 
-The corresponding settings for the second url end with 1 rather than 0, and you can add as many more sets as you like, with increasing indexes. (The parser stops reading when it hits the first webSiteUrl? entry that doesn't exist.)
+	The corresponding settings for the second url end with 1 rather than 0, and you can add as many more sets as you like, with increasing indexes. (The parser stops reading when it hits the first webSiteUrl? entry that doesn't exist.)
 
-getHtml.ps1 is a PowerShell script that can be used to retrieve the static results from a web page and save them in a text file, to look for targets near text that changes. Set the URL in the file and change the name of the file to save the results in (the default is html.txt) then run the script. By default Windows will no longer let you run a PowerShell script from a normal command line, but you can enable it - see (https://superuser.com/questions/106360/how-to-enable-execution-of-powershell-scripts).
+	getHtml.ps1 is a PowerShell script that can be used to retrieve the static results from a web page and save them in a text file, to look for targets near text that changes. Set the URL in the file and change the name of the file to save the results in (the default is html.txt) then run the script. By default Windows will no longer let you run a PowerShell script from a normal command line, but you can enable it - see (https://superuser.com/questions/106360/how-to-enable-execution-of-powershell-scripts).
 
 9. Publish the function to Azure by running 02-publish.bat.
 10. You then need to create an identity for the group/function and give that identity access to the key vault. 03-keyvaultid.bat will create an identify for the function, but, in April, 2021 when I tried it, the az keyvault role command to give the identify access to the key vault wasn't functioning (it gave "unable to establish connection" errors), so I had to do it through the Azure console. Use the steps in https://docs.microsoft.com/en-us/azure/key-vault/general/assign-access-policy-portal. Once in the "Add Access Policy" page, select the first seven "secret permissions", then select "Select Principal". Enter the first part of your function app name to filter the options and select your function app. Leave the "Authorized application" setting as "None selected" and hit the "Add" button. Then hit the "Save" button!
