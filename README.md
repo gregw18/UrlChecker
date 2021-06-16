@@ -59,15 +59,19 @@ I used VS Code under Windows 10 as my development environment, with the followin
 
 Prerequisites
 
-.NET Core 5.0
-C# 8
-Azure cli
-Azure Functions Core Tools (https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local?tabs=windows%2Ccsharp%2Cbash)
-AWS cli
-Azure subscription
-AWS account
+	.NET Core 5.0
+	C# 8
+	Azure cli
+	Azure Functions Core Tools (https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local?tabs=windows%2Ccsharp%2Cbash)
+	AWS cli
+	Azure subscription
+	AWS account
 
 Authors
+
 Greg Walker - Initial work - (https://github.com/gregw18)
+
+
 License
+
 MIT
